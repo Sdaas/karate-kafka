@@ -1,6 +1,6 @@
-Feature: Kafka Producer
+Feature: Kafka Producer Consumer Demo
 
-  # Write an event to Kafka
+  # Write an event to Kafka and read it back
 
   Background:
 
