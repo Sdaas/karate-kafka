@@ -11,6 +11,6 @@ Feature: Kafka Producer
 
   Scenario: Write some stuff to the test topic ...
 
-    * def event = { key : 'theKey', value : 'theValue' }
+    * def event = { key : '123', value : 'Hello Kafka' }
     * call kafkaProducer.send(event);
 
