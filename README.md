@@ -89,7 +89,13 @@ $ kafka-console-consumer.sh --bootstrap-server localhost:9092 \
       --property key.deserializer=org.apache.kafka.common.serialization.StringDeserializer \
       --property value.deserializer=org.apache.kafka.common.serialization.StringDeserializer
 ```
-From the IDE, run `kafka-producer.feature` in the folder `src/test/java/karate/kafka/`
+From the IDE, run `kafka-producer.feature` in the folder `src/test/java/karate/kafka/`. If all goes well,
+you should see the following output for the console consumer:
+
+```
+CreateTime: 1582419318804        123 Hello Kafka
+```
+
 
 ### References
 
