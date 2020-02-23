@@ -13,4 +13,5 @@ Feature: Kafka Producer
 
     * def event = { key : '123', value : 'Hello Kafka' }
     * call kafkaProducer.send(event);
+    * call kafkaProducer.close()
 

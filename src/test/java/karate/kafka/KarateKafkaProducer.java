@@ -12,7 +12,7 @@ import java.util.Properties;
 // This is just a wrapper around a Kafka Producer
 public class KarateKafkaProducer {
 
-    private static Logger logger = LoggerFactory.getLogger(Producer.class.getName());
+    private static Logger logger = LoggerFactory.getLogger(KarateKafkaProducer.class.getName());
 
     private KafkaProducer<String,String> kafka;
     private String kafkaTopic;
@@ -61,7 +61,7 @@ public class KarateKafkaProducer {
     }
 
     public void close() {
-        logger.info("Shutting down ...");
+        logger.info("producer is shutting down ...");
         kafka.close();
     }
 

@@ -25,4 +25,6 @@ Feature: Kafka Producer Consumer Demo
     * call kafkaProducer.send(event);
     * def output = kafkaConsumer.read();
     * print output
+    * call kafkaProducer.close()
+    * call kafkaConsumer.close()
 
