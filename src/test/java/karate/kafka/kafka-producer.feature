@@ -1,6 +1,6 @@
-Feature: Hello Kafka
+Feature: Kafka Producer
 
-  # Interfacing Kafka with Karate
+  # Write an event to Kafka
 
   Background:
 

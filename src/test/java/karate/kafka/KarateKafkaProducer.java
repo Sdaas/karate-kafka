@@ -38,8 +38,6 @@ public class KarateKafkaProducer {
     // eventValue : the string to be used as the value for the Kafka event
     public void send(Map<String,String> data) {
 
-        System.out.println("******* PRODUCER THREAD = " + Thread.currentThread().toString());
-
         String key = data.get("key"); // TODO Add error handling. What happens if key is missing ?
         String value = data.get("value"); // TODO Add error handling. What happens if value is missing ?
 
