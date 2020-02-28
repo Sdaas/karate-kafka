@@ -92,21 +92,28 @@ Kafka consumer should output all the data written by the producer.
 * def kp = new KafkaProducer()
 
 # Create Kafka Producer with the specified properties
-* def kp = new KafkaProducer( { ... } )
+* def prop = { ... } 
+* def kp = new KafkaProducer(prop)
 
 # Get the default Properties
 * def props = KafkaProducer.getDefaultProperties()
 
-# Write a message with a null key
+# Write a message with or without a key
 * kp.send(topic, "hello world")
-
-# Write a message with a key
 * kp.send(topic, "the key", "hello again")
 
-# Writing a JSON object to Kafka
-# def data = { ... }
-* string str = data
-* kp.send(topic, str)
+# Using JSON key and/or values
+* def key = { ... }
+* def value= { ... }
+* kp.send(topic, key, value)
+
+# Inspecting the results of a produce operation
+# Note that 
+*    - you must specify a key
+*    - the result is NOT JSON
+* def handler = function(msg){ karate.signal(msg) }
+* kp.send(topic, "the key", "hello with handler", handler)
+* def result = karate.listen(2000)
 
 # Close the Kafka producer
 * kp.close()

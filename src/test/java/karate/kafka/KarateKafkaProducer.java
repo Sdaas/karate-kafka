@@ -1,5 +1,7 @@
 package karate.kafka;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
@@ -31,19 +33,39 @@ public class KarateKafkaProducer {
         kafka = new KafkaProducer<String, String>(pp);
     }
 
-    public void send(String topic, String value) {
+    public void send(String topic, Object valueObject) {
+        String value = convertToString(valueObject);
         ProducerRecord<String, String> record = new ProducerRecord<>(topic, value);
-        // send to Kafka. Remember this is async
         kafka.send(record);
     }
 
-    public void send(String topic, String key, String value) {
+   public void send(String topic, Object key, Object value) {
         send(topic, key, value, null);
     }
 
-    public void send(String topic, String key, String value, java.util.function.Consumer<String> handler) {
+    //TODO Better Error handling
+    private String convertToString(Object o) {
+        if( o instanceof String) {
+            return (String) o;
+        }
+        else if( o instanceof Map) {
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                return mapper.writeValueAsString(o); // convert map to a Json string
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+                throw new IllegalArgumentException("Unable to convert key/value to String");
+            }
+        }
+        else throw new IllegalArgumentException("Expected String or HashMap. Instead got " + o.getClass().getName().toString());
+    }
 
+    public void send(String topic, Object keyObject, Object valueObject, java.util.function.Consumer<String> handler) {
+
+        String key = convertToString(keyObject);
+        String value = convertToString(valueObject);
         ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, value);
+
         if(handler == null) {
             kafka.send(record);
         }

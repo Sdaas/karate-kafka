@@ -1,6 +1,7 @@
-Feature: Kafka Producer
+Feature: Kafka Producer with String Serializer
 
-  # Write an event to Kafka
+  # By default the Kafka Producer uses a String Serializer both for keys and values. Which makes it super easy
+  # to produce String or JSON (as String) into Kafka
 
   Background:
 
@@ -13,9 +14,7 @@ Feature: Kafka Producer
     * def props = KafkaProducer.getDefaultProperties()
     * print props
 
-  Scenario: Create a Producer with default properties and write to a topic
-    # Creates a Kafka producer with the default properties. This means that it is using a StringSerializer/Deserializer
-    #
+  Scenario: Writing simple strings to the topic ...
 
     * def kp = new KafkaProducer()
     # Write a message with a null key
@@ -25,9 +24,29 @@ Feature: Kafka Producer
     # Remember to close the producer ....
     * kp.close()
 
+  Scenario: Writing JSON to the topic ...
+
+    # Both the key and value can be JSON
+
+    * def kp = new KafkaProducer()
+    * def topic = 'test-topic'
+    * def key = { id : "121" }
+    * def data =
+    """
+    {
+      id: 10,
+      person: {
+        firstName: 'John',
+        lastName: 'Doe'
+      }
+    }
+    """
+    * kp.send(topic, key, data)
+    * kp.close()
+
   Scenario: Write to a topic and inspect the result
-    # Creates a Kafka producer with the default properties. This means that it is using a StringSerializer/Deserializer
-    # Send a message and inspect the result of the callback to determine whether the write was successful or not
+    # Check the result of the produce operation
+    # In order for this to work, you must specify a key.
 
     * def kp = new KafkaProducer()
     # Create the callback handler to inspect the result of the send
@@ -56,27 +75,3 @@ Feature: Kafka Producer
     * kp.send(topic, "the key", "hello from non-default values")
     * kp.close()
 
-  Scenario: Sending a JSON
-
-    # Since this topic uses a StringSerializer, it expects the input to be a String.  However, if send()
-    # is called with a JSON object, Karate converts it first to a HashMap which send() does not understand.
-    # So we must first manually convert this to a string.
-
-    * def kp = new KafkaProducer()
-    * def topic = 'test-topic'
-    * def data =
-    """
-    {
-      id: 10,
-      person: {
-        firstName: 'John',
-        lastName: 'Doe'
-      }
-    }
-    """
-    # WRONG !
-    # * kp.send(topic, data)
-    # RIGHT !
-    * string str = data
-    * kp.send(topic, str)
-    * kp.close()
