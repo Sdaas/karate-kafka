@@ -5,6 +5,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -56,7 +57,17 @@ public class KarateKafkaProducer {
                         handler.accept(e.getMessage());
                     } else {
                         // the data was successfully sent
-                        handler.accept(recordMetadata.toString());
+
+                        HashMap<String, String> map = new HashMap<>();
+                        map.put("topic", recordMetadata.topic());
+                        map.put("partition", Integer.toString(recordMetadata.partition()));
+                        if(recordMetadata.hasOffset()) {
+                            map.put("offset", Long.toString(recordMetadata.offset()));
+                        }
+                        if(recordMetadata.hasTimestamp()) {
+                            map.put("timestamp", Long.toString(recordMetadata.timestamp()));
+                        }
+                        handler.accept(map.toString());
                     }
                 }
             });
