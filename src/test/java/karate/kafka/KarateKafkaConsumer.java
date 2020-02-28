@@ -1,10 +1,11 @@
 package karate.kafka;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.errors.WakeupException;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.slf4j.Logger;
@@ -18,25 +19,30 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class KarateKafkaConsumer implements Runnable{
 
     private static Logger logger = LoggerFactory.getLogger(KarateKafkaConsumer.class.getName());
-
     private KafkaConsumer<String,String> kafkaConsumer;
     private String kafkaTopic;
-    LinkedBlockingQueue<Map<String,String>> output = new LinkedBlockingQueue<>();
+
+    private LinkedBlockingQueue<Map<Object,Object>> outputList = new LinkedBlockingQueue<>();
     private final AtomicBoolean closed = new AtomicBoolean(false);
 
-    public KarateKafkaConsumer(Map<String,String> params) {
-        String kafkaTopic = params.get("topic"); // TODO Add error handling if this is not present in the param map
-        create(kafkaTopic);
+    public KarateKafkaConsumer(String kafkaTopic, Map<String,String> map) {
+
+        Properties cp = new Properties();
+        for( String key : map.keySet()){
+            String value = (String) map.get(key);
+            cp.setProperty(key,value);
+        }
+        create(kafkaTopic, cp);
     }
 
     public KarateKafkaConsumer(String kafkaTopic) {
-        create(kafkaTopic);
+        Properties cp = getDefaultProperties();
+        create(kafkaTopic, cp);
     }
 
     // All constructors eventually call this ....
-    private void create(String kafkaTopic) {
+    private void create(String kafkaTopic, Properties cp) {
         this.kafkaTopic = kafkaTopic;
-        Properties cp = getDefaultKafkaConsumerProperties();
 
         // Create the consumer and subscribe to the topic
         kafkaConsumer= new KafkaConsumer<String, String>(cp);
@@ -47,15 +53,13 @@ public class KarateKafkaConsumer implements Runnable{
         t.start();
     }
 
-    private Properties getDefaultKafkaConsumerProperties(){
+    public static Properties getDefaultProperties(){
         // Consumer Configuration
         Properties cp = new Properties();
         cp.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
         cp.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         cp.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,StringDeserializer.class.getName());
-        cp.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "consumer_group1");
-        cp.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest"); // from beginning of topic
-
+        cp.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "karate-kafka-default-consumer-group");
         return cp;
     }
 
@@ -63,6 +67,16 @@ public class KarateKafkaConsumer implements Runnable{
         logger.info("consumer is shutting down ...");
         closed.set(true);
         kafkaConsumer.wakeup();
+    }
+
+    private Object convert( String str ) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            return mapper.readValue(str, Map.class);
+        } catch (JsonProcessingException e) {
+            // So this was not a JSON .. then it must be a normal string
+            return str;
+        }
     }
 
     public void run(){
@@ -77,18 +91,24 @@ public class KarateKafkaConsumer implements Runnable{
                         logger.info("Partition : " + record.partition() + " Offset : " + record.offset());
                         logger.info("Key : " + record.key() + " Value : " + record.value());
 
-                        HashMap<String,String> map = new HashMap<>();
-                        map.put("key", (String) record.key());
-                        map.put("value", (String) record.value());
+                        HashMap<Object,Object> map = new HashMap<>();
+                        String key = (String) record.key();
+                        String value = (String) record.value();
 
-                        output.put(map);
+                        // Now on the producer side, key/value could have been String or a JSON. So we have to
+                        // try both ... Thats what the convert() method does
+
+                        if( key != null ) map.put("key", convert(key));
+                        map.put("value", convert(value));
+
+                        outputList.put(map);
                     }
                 }
             }
         } catch (WakeupException e) {
             // Ignore exception if closing
             if (!closed.get()) throw e;
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         } finally {
             kafkaConsumer.close();
@@ -96,7 +116,7 @@ public class KarateKafkaConsumer implements Runnable{
         }
     }
 
-    public synchronized Map<String,String> read() throws InterruptedException {
-        return output.take();  // wait if necessary for data to become available
+    public synchronized Map<Object,Object> take() throws InterruptedException {
+        return outputList.take();  // wait if necessary for data to become available
     }
 }

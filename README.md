@@ -56,7 +56,7 @@ $ ./teardown.sh
 - parameter passing to constructor and methods
 
 ## Producing Data to Kafka
-### Setup
+
 We will write something to the `test-topic` in Kafka and consume it through the console consumer
 
 Start the Kafka cluster and a consumer
@@ -119,6 +119,27 @@ Kafka consumer should output all the data written by the producer.
 * kp.close()
 ```
 
+### Kafka Consumer
+
+```
+# Create a Kafka consumer with the default properties. A consumer starts listening to
+# the input topic as soon as it is created
+* def kc = new KafkaConsumer(topic)
+
+# Create a Kafka consumer with the specified properties
+* def props = { ... }
+* def kc = new KafkaConsumer(topic, props)
+
+# Get the default Properties
+* def props = KafkaConsumer.getDefaultProperties()
+
+# Read a record from the topic. This call will block until data is availale    
+* def output = kc.take();
+
+# Close the consumer
+# This is very important. Kafka allows only one consumer per consumer group to listen to a partition
+* kc.close()
+```
 
 ### References
 
