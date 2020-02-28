@@ -87,7 +87,7 @@ Kafka consumer should output all the data written by the producer.
 
 ### Kafka Producer
 
-```
+```cucumber
 # Create Kafka Producer with the default properties
 * def kp = new KafkaProducer()
 
@@ -121,7 +121,7 @@ Kafka consumer should output all the data written by the producer.
 
 ### Kafka Consumer
 
-```
+```cucumber
 # Create a Kafka consumer with the default properties. A consumer starts listening to
 # the input topic as soon as it is created
 * def kc = new KafkaConsumer(topic)
