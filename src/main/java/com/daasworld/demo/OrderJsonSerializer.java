@@ -7,11 +7,11 @@ import org.apache.kafka.common.serialization.Serializer;
 
 import java.util.Map;
 
-public class MyJsonSerializer<T> implements Serializer<T> {
+public class OrderJsonSerializer<T> implements Serializer<T> {
 
     private final ObjectMapper objectMapper;
 
-    public MyJsonSerializer() {
+    public OrderJsonSerializer() {
         this.objectMapper = new ObjectMapper();
     }
 

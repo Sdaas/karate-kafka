@@ -1,12 +1,8 @@
 package karate.kafka;
 
-import com.daasworld.demo.MyGenericSerializer;
-import com.daasworld.demo.MyJsonSerializer;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.daasworld.karate.MyGenericSerializer;
 import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.Serializer;
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

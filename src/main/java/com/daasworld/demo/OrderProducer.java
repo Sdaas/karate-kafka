@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.IntegerSerializer;
 import org.apache.kafka.common.serialization.Serializer;
-import org.apache.kafka.connect.json.JsonSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +59,7 @@ public class OrderProducer {
     public OrderProducer() {
 
         Serializer<Integer> keySerializer = new IntegerSerializer();
-        Serializer<Order> valueSerializer = new MyJsonSerializer<>();
+        Serializer<Order> valueSerializer = new OrderJsonSerializer<>();
         Properties pp = getProducerConfig();
         producer = new KafkaProducer<>(pp, keySerializer, valueSerializer);
     }

@@ -28,7 +28,7 @@ kafka-console-consumer.sh --bootstrap-server localhost:9092 \
     --property print.value=true \
     --property print.timestamp=true \
     --property key.deserializer=org.apache.kafka.common.serialization.StringDeserializer \
-    --property value.deserializer=org.apache.kafka.common.serialization.LongDeserializer
+    --property value.deserializer=org.apache.kafka.common.serialization.StringDeserializer
 ```
 
 In another terminal start off a producer, and enter some data for the producer. Ideally the consumer
