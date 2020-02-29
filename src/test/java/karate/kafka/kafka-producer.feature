@@ -29,7 +29,6 @@ Feature: Kafka Producer with String Serializer
     # Both the key and value can be JSON
 
     * def kp = new KafkaProducer()
-    * def topic = 'test-topic'
     * def key = { id : "121" }
     * def data =
     """
