@@ -42,4 +42,13 @@ public class Order {
     public void setId(int id) {
         this.id = id;
     }
+
+    @Override
+    public String toString() {
+        return "Order{" +
+                "id=" + id +
+                ", customer=" + customer +
+                ", lineItem=" + lineItem +
+                '}';
+    }
 }

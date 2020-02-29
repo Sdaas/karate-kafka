@@ -28,4 +28,12 @@ public class LineItem {
     public void setQuantity(int quantity) {
         this.quantity = quantity;
     }
+
+    @Override
+    public String toString() {
+        return "LineItem{" +
+                "id=" + id +
+                ", quantity=" + quantity +
+                '}';
+    }
 }

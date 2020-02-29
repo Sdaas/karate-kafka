@@ -38,4 +38,13 @@ public class Customer {
     public void setContact(Contact contact) {
         this.contact = contact;
     }
+
+    @Override
+    public String toString() {
+        return "Customer{" +
+                "firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", contact=" + contact +
+                '}';
+    }
 }
