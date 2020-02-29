@@ -1,8 +1,11 @@
 package karate.kafka;
 
+import com.daasworld.demo.MyGenericSerializer;
+import com.daasworld.demo.MyJsonSerializer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.producer.*;
+import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +20,18 @@ public class KarateKafkaProducer {
 
     private static Logger logger = LoggerFactory.getLogger(KarateKafkaProducer.class.getName());
 
-    private KafkaProducer<String,String> kafka;
+    private KafkaProducer<Object,Object> kafka;
+
+    public KarateKafkaProducer() {
+        Properties pp = getDefaultProperties();
+        createKafkaProducer(pp);
+    }
+
+    private void createKafkaProducer(Properties pp) {
+        Serializer<Object> keySerializer = new MyGenericSerializer<>();
+        Serializer<Object> valueSerializer = new MyGenericSerializer<>();
+        kafka = new KafkaProducer<>(pp, keySerializer, valueSerializer);
+    }
 
     public KarateKafkaProducer(Map<String,Object> map) {
         Properties pp = new Properties();
@@ -25,47 +39,21 @@ public class KarateKafkaProducer {
             String value = (String) map.get(key);
             pp.setProperty(key,value);
         }
-        kafka = new KafkaProducer<String, String>(pp);
+        createKafkaProducer(pp);
     }
 
-    public KarateKafkaProducer() {
-        Properties pp = getDefaultProperties();
-        kafka = new KafkaProducer<String, String>(pp);
-    }
-
-    public void send(String topic, Object valueObject) {
-        String value = convertToString(valueObject);
-        ProducerRecord<String, String> record = new ProducerRecord<>(topic, value);
+    public void send(String topic, Object value) {
+        ProducerRecord<Object, Object> record = new ProducerRecord<>(topic, value);
         kafka.send(record);
     }
 
-   public void send(String topic, Object key, Object value) {
-        send(topic, key, value, null);
+    public void send(String topic, Object key, Object value) {
+        send(topic, key, value, null );
     }
 
-    //TODO Better Error handling
-    private String convertToString(Object o) {
-        if( o instanceof String) {
-            return (String) o;
-        }
-        else if( o instanceof Map) {
-            ObjectMapper mapper = new ObjectMapper();
-            try {
-                return mapper.writeValueAsString(o); // convert map to a Json string
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-                throw new IllegalArgumentException("Unable to convert key/value to String");
-            }
-        }
-        else throw new IllegalArgumentException("Expected String or HashMap. Instead got " + o.getClass().getName().toString());
-    }
+    public void send(String topic, Object key, Object value, java.util.function.Consumer<String> handler) {
 
-    public void send(String topic, Object keyObject, Object valueObject, java.util.function.Consumer<String> handler) {
-
-        String key = convertToString(keyObject);
-        String value = convertToString(valueObject);
-        ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, value);
-
+        ProducerRecord<Object, Object> record = new ProducerRecord<>(topic, key, value);
         if(handler == null) {
             kafka.send(record);
         }
@@ -106,8 +94,9 @@ public class KarateKafkaProducer {
         // See https://kafka.apache.org/documentation/#producerconfigs for Producer configuration
         Properties pp = new Properties();
         pp.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
-        pp.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        pp.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+
+        pp.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, MyGenericSerializer.class.getName());
+        pp.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, MyGenericSerializer.class.getName());
 
         // create a safe producer
         pp.setProperty(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG,"true");
