@@ -12,6 +12,7 @@ import org.apache.kafka.common.serialization.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Properties;
 
 public class OrderProducer {
@@ -43,7 +44,7 @@ public class OrderProducer {
 
     public void produce(Order order){
         Integer id = order.getId();
-        ProducerRecord<Integer,Order> record = new ProducerRecord<>("test-topic", id, order);
+        ProducerRecord<Integer,Order> record = new ProducerRecord<>("order-input", id, order);
 
         producer.send(record, (recordMetadata, e) -> {
             if ( e != null ) {
@@ -80,17 +81,20 @@ public class OrderProducer {
         while(true) {
 
             // Create a domain object
-            LineItem item = new LineItem(123, 10);
+            LineItem item = new LineItem(123, 5, 10);
+            ArrayList<LineItem> items = new ArrayList<>();
+            items.add(item);
             Contact c = new Contact("john@gmail.com", "858-123-4455");
             Customer customer = new Customer("john", "doe", c);
-            Order order = new Order(customer,item);
+            Order order = new Order(customer);
+            order.setLineItems(items);
 
             p.inspect(order);
 
             p.produce(order);
 
             try {
-                Thread.sleep(1000);
+                Thread.sleep(5000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

@@ -29,7 +29,7 @@ public class OrderConsumer{
         consumer= new KafkaConsumer<>(cp, keyDeserializer, valueDeserializer);
 
         //and subscribe to the topic
-        consumer.subscribe(Collections.singleton("test-topic"));
+        consumer.subscribe(Collections.singleton("order-output"));
     }
 
     public static Properties getDefaultProperties(){
@@ -52,7 +52,8 @@ public class OrderConsumer{
                 if( records != null ){
                     for(ConsumerRecord record : records ) {
                         logger.info("*** Consumer got data ****");
-                        logger.info("Key : " + record.key() + " Value : " + record.value());
+                        logger.info("Key : " + record.key());
+                        logger.info("Value : " + record.value());
 
                     }
                 }

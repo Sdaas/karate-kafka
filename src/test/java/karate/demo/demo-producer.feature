@@ -2,10 +2,11 @@ Feature: A producer for the Demo Order domain
 
   # The consumer is expecting the key to be an Integer, and the value to be an Order class serialized into JSON.
   #
+
   Background:
 
     * def KafkaProducer = Java.type('karate.kafka.KarateKafkaProducer')
-    * def topic = 'test-topic'
+    * def topic = 'order-input'
 
   Scenario: Produce an Order ...
 
@@ -23,10 +24,11 @@ Feature: A producer for the Demo Order domain
             phone : "619-123-4567"
          }
       },
-      lineItem: {
-        id: 784540,
-        quantity:10
-      }
+      lineItems :
+        [
+          { id: 12345, quantity: 3, price: 10 },
+          { id: 67890, quantity: 2, price: 7 }
+        ]
     }
     """
     * kp.send(topic, key, value)
