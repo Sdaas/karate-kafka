@@ -3,16 +3,30 @@ Feature: Karate test for the Order domain
   Background:
 
     * def KafkaProducer = Java.type('karate.kafka.KarateKafkaProducer')
-    * def topic = 'order-input'
+    * def KafkaConsumer = Java.type('karate.kafka.KarateKafkaConsumer')
+    * def input_topic = 'order-input'
+    * def output_topic = 'order-output'
+    * def random =
+      """
+      function(limit) {
+        var Random = Java.type('java.util.Random')
+        var r = new Random()
+        return r.nextInt(limit)
+      }
+      """
 
   Scenario: Produce an Order
 
+    # Remember to create a consumer before sending anything to the topic. That way
+    # the consumer is already listening to the topic.
+    * def kc = new KafkaConsumer(output_topic)
     * def kp = new KafkaProducer()
-    * def key = 45678
-    * def value =
+    * def key = random(10000)
+    * def orderId = random(10000)
+    * def order =
     """
     {
-      id : 234,
+      id : #(orderId),
       customer : {
         firstName : "John",
         lastName  : "Smith",
@@ -28,5 +42,12 @@ Feature: Karate test for the Order domain
         ]
     }
     """
-    * kp.send(topic, key, value)
+    * kp.send(input_topic, key, order)
+    * print 'Send record for key = ' + key
+    # Read the topic
+    * def output = kc.take()
+    * print output
+    * print output.customer
+    # Dont forget to close the consumer and producer
     * kp.close()
+    * kc.close()
