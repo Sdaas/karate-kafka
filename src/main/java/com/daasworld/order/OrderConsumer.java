@@ -1,6 +1,6 @@
-package com.daasworld.demo;
+package com.daasworld.order;
 
-import com.daasworld.demo.domain.Order;
+import com.daasworld.order.domain.Order;
 import com.daasworld.karate.MyJsonDeserializer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;

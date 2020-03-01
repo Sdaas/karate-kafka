@@ -1,4 +1,4 @@
-package com.daasworld.demo.domain;
+package com.daasworld.order.domain;
 
 public class Contact {
 

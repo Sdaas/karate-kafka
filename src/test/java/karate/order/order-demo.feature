@@ -1,14 +1,11 @@
-Feature: A producer for the Demo Order domain
-
-  # The consumer is expecting the key to be an Integer, and the value to be an Order class serialized into JSON.
-  #
+Feature: Karate test for the Order domain
 
   Background:
 
     * def KafkaProducer = Java.type('karate.kafka.KarateKafkaProducer')
     * def topic = 'order-input'
 
-  Scenario: Produce an Order ...
+  Scenario: Produce an Order
 
     * def kp = new KafkaProducer()
     * def key = 45678
