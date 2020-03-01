@@ -1,26 +1,44 @@
-package com.daasworld.demo;
+package com.daasworld.order;
 
-import com.daasworld.demo.domain.Order;
+import com.daasworld.order.domain.LineItem;
+import com.daasworld.order.domain.Order;
 import com.daasworld.karate.MyJsonDeserializer;
-import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.kafka.common.serialization.*;
-import org.apache.kafka.connect.json.JsonDeserializer;
-import org.apache.kafka.connect.json.JsonSerializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
-import org.apache.kafka.streams.kstream.Consumed;
-import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.Produced;
+import org.apache.kafka.streams.kstream.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.chrono.ThaiBuddhistDate;
+import java.util.ArrayList;
 import java.util.Properties;
+
 
 public class OrderTotalStream {
 
     private static Logger logger = LoggerFactory.getLogger(OrderTotalStream.class.getName());
+
+    private static class OrderMapper implements ValueMapper<Order, Order> {
+
+        @Override
+        public Order apply(Order order) {
+
+            logger.info("Processing order Id: " + order.getId());
+            int orderTotal = 0;
+            ArrayList<LineItem> lineItems = order.getLineItems();
+
+            for(LineItem item : lineItems){
+                int lineTotal = item.getPrice() * item.getQuantity();
+                item.setTotal(lineTotal);
+                orderTotal += lineTotal;
+            }
+            order.setLineItems(lineItems);
+            order.setTotal(orderTotal);
+            logger.info("Total: " + orderTotal);
+            return order;
+        }
+    }
 
     public static void main(String[] args) {
 
@@ -31,7 +49,7 @@ public class OrderTotalStream {
         config.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
 
         // The stream's application Id. The Consumer Group ID will be set to this value
-        config.put(StreamsConfig.APPLICATION_ID_CONFIG, "order-domain-demo-order-total-stream");
+        config.put(StreamsConfig.APPLICATION_ID_CONFIG, "order-total-stream");
 
         // Specify the Serdes for the input Stream and output streams. In both cases, the key is Long,
         // and the value is a Json of Order.class
@@ -51,7 +69,12 @@ public class OrderTotalStream {
         // The processing topology
         StreamsBuilder builder = new StreamsBuilder();
         KStream<Integer,Order> orderStream = builder.stream("order-input",consumed);
-        orderStream.to("order-output",produced);
+        orderStream.peek((key, order) -> {
+            logger.info("processing record");
+            logger.info("key = " + key);
+            logger.info("order = " + order);
+        }).mapValues( new OrderMapper() )
+                .to("order-output",produced);
 
         // Execute everything
         KafkaStreams stream = new KafkaStreams(builder.build(),config);
