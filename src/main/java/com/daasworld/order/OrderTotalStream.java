@@ -2,7 +2,6 @@ package com.daasworld.order;
 
 import com.daasworld.order.domain.LineItem;
 import com.daasworld.order.domain.Order;
-import com.daasworld.karate.MyJsonDeserializer;
 import org.apache.kafka.common.serialization.*;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -43,13 +42,10 @@ public class OrderTotalStream {
 
     public static void main(String[] args) {
 
+        // Configure the Stream. See https://kafka.apache.org/documentation/#streamsconfigs
         Properties config = new Properties();
         config.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
         config.put(StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, LogAndContinueExceptionHandler.class.getName());
-
-        // we are not going to use these anyway TODO fix this
-        config.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
-        config.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
 
         // The stream's application Id. The Consumer Group ID will be set to this value
         config.put(StreamsConfig.APPLICATION_ID_CONFIG, "order-total-stream");
@@ -62,7 +58,7 @@ public class OrderTotalStream {
         Serde<Integer> keySerde = Serdes.serdeFrom(keySerializer, keyDeserializer);
 
         Serializer<Order> valueSerializer = new OrderJsonSerializer<>();
-        Deserializer<Order> valueDeserializer = new MyJsonDeserializer<Order>(Order.class);
+        Deserializer<Order> valueDeserializer = new OrderJsonDeserializer();
         Serde<Order> valueSerde = Serdes.serdeFrom(valueSerializer, valueDeserializer);
 
         Consumed<Integer, Order> consumed = Consumed.with(keySerde,valueSerde);

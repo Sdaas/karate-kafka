@@ -8,7 +8,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.IntegerSerializer;
-import org.apache.kafka.common.serialization.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,9 +24,11 @@ public class OrderProducer {
         // create producer properties
         // See https://kafka.apache.org/documentation/#producerconfigs for Producer configuration
         Properties pp = new Properties();
-        pp.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
 
-        // no default serializer - specified when the producer is created
+        // all the mandatory configurations
+        pp.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
+        pp.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, IntegerSerializer.class.getName());
+        pp.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, OrderJsonSerializer.class.getName());
 
         // create a safe producer
         pp.setProperty(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG,"true");
@@ -58,11 +59,8 @@ public class OrderProducer {
     }
 
     public OrderProducer() {
-
-        Serializer<Integer> keySerializer = new IntegerSerializer();
-        Serializer<Order> valueSerializer = new OrderJsonSerializer<>();
         Properties pp = getProducerConfig();
-        producer = new KafkaProducer<>(pp, keySerializer, valueSerializer);
+        producer = new KafkaProducer<>(pp);
     }
 
     private String inspect(Order order ){
@@ -89,6 +87,7 @@ public class OrderProducer {
             Order order = new Order(customer);
             order.setLineItems(items);
 
+            // for debugging
             p.inspect(order);
 
             p.produce(order);

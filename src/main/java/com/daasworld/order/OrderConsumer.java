@@ -1,14 +1,12 @@
 package com.daasworld.order;
 
 import com.daasworld.order.domain.Order;
-import com.daasworld.karate.MyJsonDeserializer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.IntegerDeserializer;
-import org.apache.kafka.common.serialization.StringDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,9 +20,10 @@ public class OrderConsumer{
 
 
     public OrderConsumer() {
+
         // Create the consumer
         Deserializer<Integer> keyDeserializer = new IntegerDeserializer();
-        Deserializer<Order> valueDeserializer = new MyJsonDeserializer<>(Order.class);
+        Deserializer<Order> valueDeserializer = new OrderJsonDeserializer();
         Properties cp = getDefaultProperties();
         consumer= new KafkaConsumer<>(cp, keyDeserializer, valueDeserializer);
 
@@ -35,10 +34,11 @@ public class OrderConsumer{
     public static Properties getDefaultProperties(){
         // Consumer Configuration
         Properties cp = new Properties();
+        // mandatory configuration properties. See https://kafka.apache.org/documentation/#consumerconfigs
         cp.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
         cp.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, IntegerDeserializer.class.getName());
-        cp.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName()); // never used though
-        cp.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "order-domain-demo-consumer-group");
+        cp.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, OrderJsonDeserializer.class.getName());
+        cp.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "order-demo-consumer-group");
         return cp;
     }
 
@@ -54,7 +54,6 @@ public class OrderConsumer{
                         logger.info("*** Consumer got data ****");
                         logger.info("Key : " + record.key());
                         logger.info("Value : " + record.value());
-
                     }
                 }
             }
