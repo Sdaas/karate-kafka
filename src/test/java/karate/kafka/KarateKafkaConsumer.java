@@ -6,6 +6,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
 import org.apache.kafka.common.serialization.*;
 import org.slf4j.Logger;
@@ -13,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -21,6 +23,8 @@ public class KarateKafkaConsumer implements Runnable{
     private static Logger logger = LoggerFactory.getLogger(KarateKafkaConsumer.class.getName());
     private KafkaConsumer<Object,Object> kafka;
     private String kafkaTopic;
+    private CountDownLatch latch = new CountDownLatch(1);
+    private boolean partitionsAssigned = false;
 
     private LinkedBlockingQueue<Map<Object,Object>> outputList = new LinkedBlockingQueue<>();
     private final AtomicBoolean closed = new AtomicBoolean(false);
@@ -48,9 +52,20 @@ public class KarateKafkaConsumer implements Runnable{
         kafka= new KafkaConsumer<Object, Object>(cp);
         kafka.subscribe(Collections.singleton(kafkaTopic));
 
-        // Start the thread
+        // Start the thread which will poll the topic for data.
         Thread t = new Thread(this);
         t.start();
+
+        // And we will wait until topics have been assigned to this consumer
+        // Once topics have been assigned to this consumer, the latch is set. Until then we wait ...
+        // and wait ... and wait ...
+        logger.info("Waiting for consumer to be ready..");
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        logger.info("consumer is ready");
     }
 
     public static Properties getDefaultProperties(){
@@ -82,12 +97,30 @@ public class KarateKafkaConsumer implements Runnable{
         }
     }
 
+    public void signalWhenReady(){
+
+        if(!partitionsAssigned){
+            logger.info("checking partition assignment");
+            Set<TopicPartition> partitions = kafka.assignment();
+            if( partitions.size() > 0 ) {
+                partitionsAssigned = true;
+                logger.info("partitions assigned to consumer ...");
+                latch.countDown();
+            }
+        }
+    }
     public void run(){
-        logger.info("consumer is reading ...");
+
+        //Until you call poll(), the consumer is just idling.
+        // Only after poll() is invoked, it will initiate a connection to the cluster, get assigned partitions and attempt to fetch messages.
+        // So we will call poll() and then wait for some time until the partition is assigned.
+        // Then raise a signal ( countdown latch ) so that the constructor can return
+
         try {
             while (!closed.get()) {
                 // Read for records and handle it
-                ConsumerRecords<Object,Object> records = kafka.poll(Duration.ofMillis(100));
+                ConsumerRecords<Object,Object> records = kafka.poll(Duration.ofMillis(500));
+                signalWhenReady();
                 if( records != null ){
                     for(ConsumerRecord record : records ) {
                         logger.info("*** Consumer got data ****");
@@ -100,7 +133,7 @@ public class KarateKafkaConsumer implements Runnable{
                             logger.info("Key : null");
                         else
                             logger.info("Key : " + key + " Type: " + key.getClass().getName());
-                        logger.info(" Value : " + value + " Type: " + value.getClass().getName());
+                        logger.info("Value : " + value + " Type: " + value.getClass().getName());
 
                         HashMap<Object,Object> map = new HashMap<>();
                         if( key != null ) map.put("key", key);
@@ -122,6 +155,7 @@ public class KarateKafkaConsumer implements Runnable{
     }
 
     public synchronized Map<Object,Object> take() throws InterruptedException {
+        logger.info("take() called");
         return outputList.take();  // wait if necessary for data to become available
     }
 }
