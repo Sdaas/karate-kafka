@@ -1,4 +1,4 @@
-package com.daasworld.karate;
+package karate.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.common.errors.SerializationException;

@@ -1,6 +1,5 @@
 package karate.kafka;
 
-import com.daasworld.karate.MyGenericSerializer;
 import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.Serializer;
 import org.slf4j.Logger;
