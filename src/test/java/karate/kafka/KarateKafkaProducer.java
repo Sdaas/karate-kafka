@@ -23,9 +23,7 @@ public class KarateKafkaProducer {
     }
 
     private void createKafkaProducer(Properties pp) {
-        Serializer<Object> keySerializer = new MyGenericSerializer<>();
-        Serializer<Object> valueSerializer = new MyGenericSerializer<>();
-        kafka = new KafkaProducer<>(pp, keySerializer, valueSerializer);
+        kafka = new KafkaProducer<>(pp);
     }
 
     public KarateKafkaProducer(Map<String,Object> map) {
@@ -49,34 +47,36 @@ public class KarateKafkaProducer {
     public void send(String topic, Object key, Object value, java.util.function.Consumer<String> handler) {
 
         ProducerRecord<Object, Object> record = new ProducerRecord<>(topic, key, value);
-        if(handler == null) {
-            kafka.send(record);
-        }
-        else {
-            kafka.send(record, new Callback() {
+        kafka.send(record, new Callback() {
 
-                @Override
-                public void onCompletion(RecordMetadata recordMetadata, Exception e) {
-                    if ( e != null ) {
-                        // there was an error sending it
+            @Override
+            public void onCompletion(RecordMetadata recordMetadata, Exception e) {
+                if ( e != null ) {
+                    // there was an error sending it
+                    logger.error("Error sending message");
+                    logger.error(e.getMessage());
+                    if( handler != null )
                         handler.accept(e.getMessage());
-                    } else {
-                        // the data was successfully sent
+                } else {
+                    // the data was successfully sent
+                    logger.info("Successfully sent message");
+                    logger.info("topic: " + recordMetadata.topic() + " partition: " + recordMetadata.partition() + " offset: " + recordMetadata.offset());
 
+                    if( handler != null ) {
                         HashMap<String, String> map = new HashMap<>();
                         map.put("topic", recordMetadata.topic());
                         map.put("partition", Integer.toString(recordMetadata.partition()));
-                        if(recordMetadata.hasOffset()) {
+                        if (recordMetadata.hasOffset()) {
                             map.put("offset", Long.toString(recordMetadata.offset()));
                         }
-                        if(recordMetadata.hasTimestamp()) {
+                        if (recordMetadata.hasTimestamp()) {
                             map.put("timestamp", Long.toString(recordMetadata.timestamp()));
                         }
                         handler.accept(map.toString());
                     }
                 }
-            });
-        }
+            }
+        });
     }
 
     public void close() {
