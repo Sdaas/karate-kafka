@@ -9,6 +9,71 @@ Feature: Where the key and values are primitive data types
     * def KafkaConsumer = Java.type('karate.kafka.KarateKafkaConsumer')
     * def props = KafkaConsumer.getDefaultProperties()
     * def topic = 'test-topic'
+    * def randomInt =
+      """
+      function() {
+        var Random = Java.type('java.util.Random')
+        var r = new Random()
+        return r.nextInt()
+      }
+      """
+    * def randomLong =
+      """
+      function() {
+        var Random = Java.type('java.util.Random')
+        var r = new Random()
+        return r.nextLong()
+      }
+      """
+
+
+
+  Scenario: Record with String key and value types
+
+    * def kp = new KafkaProducer()
+    * def kc = new KafkaConsumer(topic)
+    * def key = "the key"
+    * def value = "the value"
+    * kp.send(topic, key, value)
+    * def strOutput = kc.take();
+    * json output = strOutput
+    * kp.close()
+    * kc.close();
+    * match output.key == key
+    * match output.value == value
+
+
+  Scenario: Record with Integer key and value types
+
+    * def kp = new KafkaProducer()
+    * props["key.deserializer"] = "org.apache.kafka.common.serialization.IntegerDeserializer"
+    * props["value.deserializer"] = "org.apache.kafka.common.serialization.IntegerDeserializer"
+    * def kc = new KafkaConsumer(topic, props)
+    * def key = randomInt()
+    * def value = randomInt()
+    * kp.send(topic, key, value)
+    * def strOutput = kc.take();
+    * json output = strOutput
+    * kp.close()
+    * kc.close();
+    * match output.key == key
+    * match output.value == value
+
+  Scenario: Javascript Numbers are generally treated as Integers ...
+
+    * def kp = new KafkaProducer()
+    * props["key.deserializer"] = "org.apache.kafka.common.serialization.IntegerDeserializer"
+    * props["value.deserializer"] = "org.apache.kafka.common.serialization.IntegerDeserializer"
+    * def kc = new KafkaConsumer(topic, props)
+    * def key = 1234
+    * def value = 12345
+    * kp.send(topic, key, value)
+    * def strOutput = kc.take();
+    * json output = strOutput
+    * kp.close()
+    * kc.close();
+    * match output.key == key
+    * match output.value == value
 
   Scenario: Record with null key
 
@@ -18,31 +83,30 @@ Feature: Where the key and values are primitive data types
     # No need to specify the deserializer for the key.
     * props["value.deserializer"] = "org.apache.kafka.common.serialization.IntegerDeserializer"
     * def kc = new KafkaConsumer(topic,props)
-    * def value = 12345
+    * def value = randomInt()
     * kp.send(topic, value)
     * def strOutput = kc.take();
     * json output = strOutput
-    * print output
     * kp.close()
     * kc.close();
     # Dont read the output.key - it is meaningless
     * match output.value == value
 
+  Scenario: Automatic promotion of Integer to Long at the Producer
 
-  Scenario: Record with Integer key and value types
+     # If the key or value is a Long, then the Producer will automatically promote it to a Long.
+     # On the consumer side, you must specify a LongDeserializer to handle this.
 
-     * def kp = new KafkaProducer()
-     * props["key.deserializer"] = "org.apache.kafka.common.serialization.IntegerDeserializer"
-     * props["value.deserializer"] = "org.apache.kafka.common.serialization.IntegerDeserializer"
-     * def kc = new KafkaConsumer(topic,props)
-     * def key = 123
-     * def value = 12345
-     * kp.send(topic, key, value)
-     * def strOutput = kc.take();
-     * json output = strOutput
-     * kp.close()
-     * kc.close();
-     * match output.key == key
-     * match output.value == value
-
-
+    * def kp = new KafkaProducer()
+    * props["key.deserializer"] = "org.apache.kafka.common.serialization.LongDeserializer"
+    * props["value.deserializer"] = "org.apache.kafka.common.serialization.LongDeserializer"
+    * def kc = new KafkaConsumer(topic,props)
+    * def key = randomLong()
+    * def value = randomLong()
+    * kp.send(topic, key, value)
+    * def strOutput = kc.take();
+    * json output = strOutput
+    * kp.close()
+    * kc.close();
+    * match output.key == key
+    * match output.value == value
