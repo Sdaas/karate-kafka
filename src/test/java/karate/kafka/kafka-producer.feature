@@ -1,7 +1,4 @@
-Feature: Kafka Producer with String Serializer
-
-  # By default the Kafka Producer uses a String Serializer both for keys and values. Which makes it super easy
-  # to produce String or JSON (as String) into Kafka
+Feature: Kafka Producer
 
   Background:
 

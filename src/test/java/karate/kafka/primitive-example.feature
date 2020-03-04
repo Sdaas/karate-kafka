@@ -61,6 +61,10 @@ Feature: Where the key and values are primitive data types
 
   Scenario: Javascript Numbers are generally treated as Integers ...
 
+    # Karate uses Nashorn to convert Javascript numbers to Java integer. Due to the way
+    # Nashorn works, the largest number that can be safely converted to Integer or Long is
+    # 2147483647
+
     * def kp = new KafkaProducer()
     * props["key.deserializer"] = "org.apache.kafka.common.serialization.IntegerDeserializer"
     * props["value.deserializer"] = "org.apache.kafka.common.serialization.IntegerDeserializer"
@@ -79,6 +83,7 @@ Feature: Where the key and values are primitive data types
 
     # The KafkaProducer requires a key serializer, even if the message does not contain a key
     # In this case, it really does not make sense to read back the key from the consumer
+
     * def kp = new KafkaProducer()
     # No need to specify the deserializer for the key.
     * props["value.deserializer"] = "org.apache.kafka.common.serialization.IntegerDeserializer"
@@ -92,9 +97,9 @@ Feature: Where the key and values are primitive data types
     # Dont read the output.key - it is meaningless
     * match output.value == value
 
-  Scenario: Automatic promotion of Integer to Long at the Producer
+  Scenario: Handling of Long at the Producer
 
-     # If the key or value is a Long, then the Producer will automatically promote it to a Long.
+     # If the key or value is a Long, then the Producer will automatically serialize it as a Long.
      # On the consumer side, you must specify a LongDeserializer to handle this.
 
     * def kp = new KafkaProducer()
