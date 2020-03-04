@@ -1,5 +1,6 @@
 package karate.java;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,5 +28,17 @@ public class HelloKarate {
             list.add(map);
         }
         return list;
+    }
+
+    public int echoInt( int x){
+        return x;
+    }
+
+    public Long echoLong( Long x){
+        return x;
+    }
+
+    public BigDecimal echoBigDecimal( BigDecimal big){
+        return big;
     }
 }
