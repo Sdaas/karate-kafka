@@ -1,12 +1,19 @@
 Feature: Karate test for the Order domain
 
+  # The order written to the order-input topic is "enriched" by the OrderTotalStream application and then
+  # published to the order-output topic. In this example, we will publish an order and verify that it has
+  # been enriched correctly.
+
+  # We have a Integer key and JSON value. So we need to tell the producer how to deserialize the key
+  # No configuration needed on the consumer side
+
   Background:
 
     * def KafkaProducer = Java.type('karate.kafka.KarateKafkaProducer')
     * def KafkaConsumer = Java.type('karate.kafka.KarateKafkaConsumer')
     * def input_topic = 'order-input'
     * def output_topic = 'order-output'
-    * def random =
+    * def randomInt =
       """
       function(limit) {
         var Random = Java.type('java.util.Random')
@@ -19,10 +26,10 @@ Feature: Karate test for the Order domain
 
     # Remember to create a consumer before sending anything to the topic. That way
     # the consumer is already listening to the topic.
-    * def kc = new KafkaConsumer(output_topic)
+    * def kc = new KafkaConsumer(output_topic, consumerProps)
     * def kp = new KafkaProducer()
-    * def key = random(10000)
-    * def orderId = random(10000)
+    * def key = randomInt(1000)
+    * def orderId = randomInt(1000)
     * def order =
     """
     {
@@ -43,11 +50,19 @@ Feature: Karate test for the Order domain
     }
     """
     * kp.send(input_topic, key, order)
-    * print 'Send record for key = ' + key
+    * print 'Send record for key = ' + key + ' orderId = ' + orderId
     # Read the topic
-    * def output = kc.take()
-    * print output
-    * print output.customer
-    # Dont forget to close the consumer and producer
+    * def temp = kc.take()
+      # Dont forget to close the consumer and producer
     * kp.close()
     * kc.close()
+    # convert the output to json
+    * json output = temp
+    * print output
+    * def outkey = output.key
+    * def outvalue = output.value
+    * match outkey == key
+    * match outvalue.id == orderId
+    * match outvalue.customer.firstName == "John"
+    * match outvalue.total == 44
+    * match order.lineItems == '#[2]'

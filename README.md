@@ -87,6 +87,8 @@ Kafka consumer should output all the data written by the producer.
 
 ### Kafka Producer
 
+Creating a Kafka producer with the default properties ...
+
 ```cucumber
 # Create Kafka Producer with the default properties
 * def kp = new KafkaProducer()
@@ -140,6 +142,166 @@ Kafka consumer should output all the data written by the producer.
 # This is very important. Kafka allows only one consumer per consumer group to listen to a partition
 * kc.close()
 ```
+
+### Cheat Sheet for configuring Serializers and Deserializers
+
+On the consumer side, you need to specify a deserializer for the key / value the data type is an integer
+
+| Data Type  | Serializer |
+| ---| ---|
+| Integer | org.apache.kafka.common.serialization.IntegerDeserializer  |
+| Longer | org.apache.kafka.common.serialization.LongDeserializer  |
+| String | auto-configured  |
+| JSON | auto-configured  |
+
+On the Producer Side, you should never have to configure a serializer either for the key or data
+
+
+## Demos
+### Order Demo
+
+In this demo, the `OrderProduer` creates an order with multiple line items and publishes it to the `order-input` topic.
+The `OrderTotalStream` enriches this by calculating the total price of the order and publishes it
+to the `order-output` topic, where is it picked up by the `OrderConsumer`.
+
+Start up the Kafka cluster.
+
+```
+$ ./setup.sh
+```
+
+* Start the `OrderTotalStream`
+* Start the `OrderConsumer`
+* Start the `OrderProducer`
+
+( Right now you can do it only from IDE - need to add support to do this from command line)
+
+
+### Order Test
+
+* Ensure that the Kafka cluster is running ( or run `./setup.sh` to start it up)
+* Ensure that the `OrderProducer` is NOT running.
+* Ensure that the `OrderConsumer` is NOT running.
+* Ensure that the `OrderTotalStream` is running.
+* From the IDE, run `order-demo.feature`
+
+( Right now you cam run this only form IDE - need to add support to do this from command line)
+
+( Also right now the match is failing because I am using the wrong deserializer)
+
+
+## Managing the local Kafka broker
+
+The configuration for Kafka and Zookeeper is specified in `kafka-single-broker.yml`. See
+[Wurstmeister's Github wiki](https://github.com/wurstmeister/kafka-docker) on how to configure this.
+
+### Setting up the Kafka Cluster
+
+From the command line, run 
+
+```
+$ ./setup.sh
+Starting kafka-karate_zookeeper_1 ... done
+Starting kafka-karate_kafka_1     ... done
+CONTAINER ID        IMAGE                    NAMES
+ce9b01556d15        wurstmeister/zookeeper   kafka-karate_zookeeper_1
+33685067cb82        wurstmeister/kafka       kafka-karate_kafka_1
+*** sleeping for 10 seconds (give time for containers to spin up)
+*** the following topic were created ....
+test-input
+test-output
+test-topic
+```
+
+To smoke test this, we will setup a consumer that will echo whatever the producer writes. 
+
+Start off a consumer ...
+
+```
+kafka-console-consumer.sh --bootstrap-server localhost:9092 \
+    --topic test-topic \
+    --from-beginning \
+    --formatter kafka.tools.DefaultMessageFormatter \
+    --property print.key=true \
+    --property print.value=true \
+    --property print.timestamp=true \
+    --property key.deserializer=org.apache.kafka.common.serialization.StringDeserializer \
+    --property value.deserializer=org.apache.kafka.common.serialization.StringDeserializer
+```
+
+In another terminal start off a producer, and enter some data for the producer. 
+```
+$ kafka-console-producer.sh --broker-list 127.0.0.1:9092 --topic test-input
+>
+> (ctrl C to quit)
+```
+
+Type something into the producer. If all goes well, you should see the consumer echo it back.
+
+### Tearing down the kafka cluster
+
+From the command-line, run
+```
+$ ./teardown.sh
+```
+
+Note that tearing down the Kafka cluster deletes the containers for the brokers so all data written
+to Kafka will also be lost.
+
+## Interop between Karate and Java
+
+### Numbers
+Karate internally uses Nashorn. Due to the way Nashnorn works, the number coversion
+between Karate DSL and Java can sometimes have issues. The exact conversion rules for 
+Nashorn vary by the JDK version and even the OS See [this](https://github.com/EclairJS/eclairjs-nashorn/wiki/Nashorn-Java-to-JavaScript-interoperability-issues)
+and [this](https://stackoverflow.com/questions/38140399/jdk-1-8-0-92-nashorn-js-engine-indexof-behaviour/38148917#38148917)
+articles for some samples.
+
+The largest number that can be safely converted to Java's integer or long is 
+`2147483647`. For example, referring to the `hello-java.feature` and the accompanying
+`HelloKarate.java` example ...
+
+```cucumber
+ * def param = 2147483647
+ # This works !
+ * def out1 = hk.echoInt(param)
+ * match out1 == param
+ # This also works !!
+ * def out2 = hk.echoLong(param)
+ * match out2 == param
+ # This does NOT work :(
+ * def out3 = hk.echoInt(2147483648)
+ * match out3 == param
+```
+
+To pass in big numbers, first convert them in `java.math.BigDecimal` as described in the
+[Karate Documentation](https://github.com/intuit/karate#large-numbers)   
+
+```cucumber
+* def param = new java.math.BigDecimal(123456789012345567890)
+* def out = hk.echoBigDecimal(param)
+* match out == param
+```
+    
+## Producing Data to Kafka
+
+We will write something to the `test-topic` in Kafka and consume it through the console consumer
+
+Start the Kafka cluster and a consumer
+```
+$ ./setup.sh
+$ kafka-console-consumer.sh --bootstrap-server localhost:9092 \
+      --topic test-topic \
+      --formatter kafka.tools.DefaultMessageFormatter \
+      --property print.key=true \
+      --property print.value=true \
+      --property print.timestamp=true \
+      --property key.deserializer=org.apache.kafka.common.serialization.StringDeserializer \
+      --property value.deserializer=org.apache.kafka.common.serialization.StringDeserializer
+```
+
+From the IDE, run `kafka-producer.feature` in the folder `src/test/java/karate/kafka/`. If all goes well, the 
+Kafka consumer should output all the data written by the producer.
 
 ### References
 
