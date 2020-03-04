@@ -26,7 +26,7 @@ public class KarateKafkaConsumer implements Runnable{
     private CountDownLatch latch = new CountDownLatch(1);
     private boolean partitionsAssigned = false;
 
-    private LinkedBlockingQueue<Map<Object,Object>> outputList = new LinkedBlockingQueue<>();
+    private LinkedBlockingQueue<String> outputList = new LinkedBlockingQueue<>();
     private final AtomicBoolean closed = new AtomicBoolean(false);
 
     public KarateKafkaConsumer(String kafkaTopic, Map<String,String> map) {
@@ -135,11 +135,16 @@ public class KarateKafkaConsumer implements Runnable{
                             logger.info("Key : " + key + " Type: " + key.getClass().getName());
                         logger.info("Value : " + value + " Type: " + value.getClass().getName());
 
+                        /*
                         HashMap<Object,Object> map = new HashMap<>();
                         if( key != null ) map.put("key", key);
                         map.put("value", value);
-
                         outputList.put(map);
+                        */
+
+                        String str = "{key: " + key + ", value: " + value + "}";
+                        outputList.put(str);
+
                     }
                 }
             }
@@ -154,7 +159,7 @@ public class KarateKafkaConsumer implements Runnable{
         }
     }
 
-    public synchronized Map<Object,Object> take() throws InterruptedException {
+    public synchronized String take() throws InterruptedException {
         logger.info("take() called");
         return outputList.take();  // wait if necessary for data to become available
     }
