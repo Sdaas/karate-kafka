@@ -11,6 +11,9 @@ Feature: Karate test for the Order domain
 
     * def KafkaProducer = Java.type('karate.kafka.KarateKafkaProducer')
     * def KafkaConsumer = Java.type('karate.kafka.KarateKafkaConsumer')
+    * def consumerProps = KafkaConsumer.getDefaultProperties();
+    * consumerProps["key.deserializer"] =  "org.apache.kafka.common.serialization.IntegerDeserializer"
+    * print consumerProps
     * def input_topic = 'order-input'
     * def output_topic = 'order-output'
     * def randomInt =
