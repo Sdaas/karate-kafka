@@ -55,12 +55,10 @@ Feature: Karate test for the Order domain
     * kp.send(input_topic, key, order)
     * print 'Send record for key = ' + key + ' orderId = ' + orderId
     # Read the topic
-    * def temp = kc.take()
+    * json output = kc.take()
       # Dont forget to close the consumer and producer
     * kp.close()
     * kc.close()
-    # convert the output to json
-    * json output = temp
     * print output
     * def outkey = output.key
     * def outvalue = output.value

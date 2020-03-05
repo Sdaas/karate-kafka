@@ -10,7 +10,7 @@ Feature: Hello Java
 
     * def output = hk.get()
     * match output == 1234
-    * print output;
+    * print output
 
   Scenario: Getting a map
 

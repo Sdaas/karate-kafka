@@ -39,8 +39,11 @@ Feature: Kafka Producer and Consumer using JSON
     * kp.send(topic, key, value);
     # Read the data from the topic. At this point, this is a String, so we need to
     # convert it back to Json in order to do matches
-    * def str = kc.take();
-    * json output = str
+    * json output = kc.take()
+    # make sure to close the consumer and producer before doing a match. That way
+    # the producer and consumer will be closed even if the assert fails
+    * kp.close()
+    * kc.close()
     * match output.key == key
     * match output.value == value
     # Since this is json, we can do all the fancy matches ...
@@ -48,6 +51,4 @@ Feature: Kafka Producer and Consumer using JSON
     * def valueout = output.value
     * match keyout.id == 10
     * match valueout.person.firstName == 'Santa'
-    # dont forget to close the consumer and producer
-    * kp.close()
-    * kc.close()
+

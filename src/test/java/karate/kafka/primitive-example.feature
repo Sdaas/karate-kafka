@@ -35,8 +35,7 @@ Feature: Where the key and values are primitive data types
     * def key = "the key"
     * def value = "the value"
     * kp.send(topic, key, value)
-    * def strOutput = kc.take();
-    * json output = strOutput
+    * json output = kc.take()
     * kp.close()
     * kc.close();
     * match output.key == key
@@ -52,8 +51,7 @@ Feature: Where the key and values are primitive data types
     * def key = randomInt()
     * def value = randomInt()
     * kp.send(topic, key, value)
-    * def strOutput = kc.take();
-    * json output = strOutput
+    * json output = kc.take()
     * kp.close()
     * kc.close();
     * match output.key == key
@@ -72,8 +70,7 @@ Feature: Where the key and values are primitive data types
     * def key = 1234
     * def value = 12345
     * kp.send(topic, key, value)
-    * def strOutput = kc.take();
-    * json output = strOutput
+    * json output = kc.take()
     * kp.close()
     * kc.close();
     * match output.key == key
@@ -90,8 +87,7 @@ Feature: Where the key and values are primitive data types
     * def kc = new KafkaConsumer(topic,props)
     * def value = randomInt()
     * kp.send(topic, value)
-    * def strOutput = kc.take();
-    * json output = strOutput
+    * json output = kc.take()
     * kp.close()
     * kc.close();
     # Dont read the output.key - it is meaningless
@@ -109,8 +105,7 @@ Feature: Where the key and values are primitive data types
     * def key = randomLong()
     * def value = randomLong()
     * kp.send(topic, key, value)
-    * def strOutput = kc.take();
-    * json output = strOutput
+    * json output = kc.take()
     * kp.close()
     * kc.close();
     * match output.key == key
