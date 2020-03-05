@@ -6,6 +6,11 @@ TBD. ( Need to add context etc etc )
 
 ## Documentation
 
+- Must have the following on your machine
+- Java 8
+- Docker
+- Kafka command-line shell
+
 ### Kafka Producer
 
 Creating a Kafka producer with the default properties ...

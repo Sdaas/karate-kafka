@@ -1,7 +1,7 @@
-package com.daasworld.order;
+package demo.order;
 
-import com.daasworld.order.domain.LineItem;
-import com.daasworld.order.domain.Order;
+import demo.order.domain.LineItem;
+import demo.order.domain.Order;
 import org.apache.kafka.common.serialization.*;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;

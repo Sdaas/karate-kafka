@@ -1,9 +1,9 @@
-package com.daasworld.order;
+package demo.order;
 
-import com.daasworld.order.domain.Contact;
-import com.daasworld.order.domain.Customer;
-import com.daasworld.order.domain.LineItem;
-import com.daasworld.order.domain.Order;
+import demo.order.domain.Contact;
+import demo.order.domain.Customer;
+import demo.order.domain.LineItem;
+import demo.order.domain.Order;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.producer.*;

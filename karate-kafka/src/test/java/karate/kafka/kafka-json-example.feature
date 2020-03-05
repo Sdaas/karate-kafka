@@ -21,7 +21,6 @@ Feature: Kafka Producer and Consumer using JSON
     # Create a consumer. It starts listening to the topic as soon as it is created
 
     * def kp = new KafkaProducer()
-    # Specify Json deserializers both for the key and value
     * def props = KafkaConsumer.getDefaultProperties()
     * def kc = new KafkaConsumer(topic,props)
     * def key = { id: 10 }

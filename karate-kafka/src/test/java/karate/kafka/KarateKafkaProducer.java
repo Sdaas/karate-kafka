@@ -1,7 +1,6 @@
 package karate.kafka;
 
 import org.apache.kafka.clients.producer.*;
-import org.apache.kafka.common.serialization.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

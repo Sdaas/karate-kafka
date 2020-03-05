@@ -1,6 +1,6 @@
-package com.daasworld.order;
+package demo.order;
 
-import com.daasworld.order.domain.Order;
+import demo.order.domain.Order;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.serialization.Deserializer;

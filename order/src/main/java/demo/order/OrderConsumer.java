@@ -1,6 +1,6 @@
-package com.daasworld.order;
+package demo.order;
 
-import com.daasworld.order.domain.Order;
+import demo.order.domain.Order;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;

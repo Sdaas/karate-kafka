@@ -1,4 +1,4 @@
-package com.daasworld.order.domain;
+package demo.order.domain;
 
 import java.util.ArrayList;
 

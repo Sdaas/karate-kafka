@@ -1,4 +1,4 @@
-package com.daasworld.order.domain;
+package demo.order.domain;
 
 public class Customer {
     private String firstName;

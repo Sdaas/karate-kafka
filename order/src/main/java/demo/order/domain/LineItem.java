@@ -1,4 +1,4 @@
-package com.daasworld.order.domain;
+package demo.order.domain;
 
 public class LineItem {
     private int id;
