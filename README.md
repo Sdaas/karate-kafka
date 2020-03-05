@@ -176,11 +176,11 @@ From the command line, run
 
 ```
 $ ./setup.sh
-Starting kafka-karate_zookeeper_1 ... done
-Starting kafka-karate_kafka_1     ... done
+Starting karate-kafka_zookeeper_1 ... done
+Starting karate-kafka_kafka_1     ... done
 CONTAINER ID        IMAGE                    NAMES
-ce9b01556d15        wurstmeister/zookeeper   kafka-karate_zookeeper_1
-33685067cb82        wurstmeister/kafka       kafka-karate_kafka_1
+ce9b01556d15        wurstmeister/zookeeper   karate-kafka_zookeeper_1
+33685067cb82        wurstmeister/kafka       karate-kafka_kafka_1
 *** sleeping for 10 seconds (give time for containers to spin up)
 *** the following topic were created ....
 test-input
@@ -275,7 +275,7 @@ $ kafka-console-consumer.sh --bootstrap-server localhost:9092 \
       --property value.deserializer=org.apache.kafka.common.serialization.StringDeserializer
 ```
 
-From the IDE, run `kafka-producer.feature` in the folder `src/test/java/karate/kafka/`. If all goes well, the 
+From the IDE, run `kafka-producer.feature` in the folder `karate-kafka/src/test/java/karate/kafka/`. If all goes well, the 
 Kafka consumer should output all the data written by the producer.
 
 ### References

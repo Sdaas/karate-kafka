@@ -5,14 +5,14 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.daasworld</groupId>
-    <artifactId>kafka-karate</artifactId>
+    <artifactId>karate-for-kafka</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <modules>
         <module>order</module>
         <module>karate-kafka</module>
     </modules>
-    <name>kafka-karate</name>
+    <name>karate-for-kafka</name>
     <description>Using Karate to Test Kafka</description>
 
     <properties>
