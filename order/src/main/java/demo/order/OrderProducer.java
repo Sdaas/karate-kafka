@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Properties;
+import java.util.Random;
 
 public class OrderProducer {
 
@@ -74,22 +75,37 @@ public class OrderProducer {
         return str;
     }
 
+    private static Order createRandomOrder(){
+
+        // Create a domain object
+        Random r = new Random();
+        ArrayList<LineItem> items = new ArrayList<>();
+        int itemCount = r.nextInt(5) + 1;
+        for( int i=0; i<itemCount; i++){
+            int itemId = r.nextInt(1000);
+            int quantity = r.nextInt(10) + 1;
+            int price = r.nextInt(100);
+            LineItem item = new LineItem(itemId, quantity, price);
+            items.add(item);
+        }
+
+        Contact c = new Contact("john@gmail.com", "858-123-4455");
+        Customer customer = new Customer("john", "doe", c);
+
+        Order order = new Order(customer);
+        order.setLineItems(items);
+
+        return order;
+    }
+
     public static void main(String[] args) {
         OrderProducer p = new OrderProducer();
         while(true) {
 
-            // Create a domain object
-            LineItem item = new LineItem(123, 5, 10);
-            ArrayList<LineItem> items = new ArrayList<>();
-            items.add(item);
-            Contact c = new Contact("john@gmail.com", "858-123-4455");
-            Customer customer = new Customer("john", "doe", c);
-            Order order = new Order(customer);
-            order.setLineItems(items);
+            Order order = createRandomOrder();
 
             // for debugging
             p.inspect(order);
-
             p.produce(order);
 
             try {
