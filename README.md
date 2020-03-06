@@ -139,18 +139,17 @@ In this demo, the `OrderProduer` creates an order with multiple line items and p
 The `OrderTotalStream` enriches this by calculating the total price of the order and publishes it
 to the `order-output` topic, where is it picked up by the `OrderConsumer`.
 
-Start up the Kafka cluster.
+Start up the Kafka cluster, and then start the `OrderTotalStream`, `OrderConsumer`, 
+and `OrderProducer` ..
 
 ```
 $ ./setup.sh
+$ cd order
+$ mvn clean package
+$ mvn exec:java@total
+$ mvn exec:java@consumer
+$ mvn exec:java@producer
 ```
-
-* Start the `OrderTotalStream`
-* Start the `OrderConsumer`
-* Start the `OrderProducer`
-
-( Right now you can do it only from IDE - need to add support to do this from command line)
-
 
 ### Order Test
 

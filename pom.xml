@@ -8,15 +8,18 @@
     <artifactId>karate-for-kafka</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
+
     <modules>
         <module>order</module>
         <module>karate-kafka</module>
     </modules>
+
     <name>karate-for-kafka</name>
     <description>Using Karate to Test Kafka</description>
 
     <properties>
         <java.version>1.8</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
 </project>
