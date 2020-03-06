@@ -108,7 +108,7 @@ Creating a consumer with specified properties ...
 Using a Kafka producer ...
 ```cucumber
 # Read a record from the topic. This call will block until data is availale    
-* def output = kc.take();
+* json output = kc.take();
 ```
 
 Terminating the Kafka consumer ...
@@ -220,8 +220,10 @@ From the command-line, run
 $ ./teardown.sh
 ```
 
-Note that tearing down the Kafka cluster deletes the containers for the brokers so all data written
-to Kafka will also be lost.
+This stops all the zookeeper and kafka broker containers, and also delete the containers. So
+all the data written to the kafka cluster will be lost. During testing, this is good because it
+allows us to start each test from the same known state.
+
 
 ## Interop between Karate and Java
 
