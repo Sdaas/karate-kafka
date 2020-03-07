@@ -1,5 +1,7 @@
 package demo.order.domain;
 
+import java.util.Objects;
+
 public class Contact {
 
     private String email;
@@ -36,5 +38,19 @@ public class Contact {
                 "email='" + email + '\'' +
                 ", phone='" + phone + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Contact contact = (Contact) o;
+        return Objects.equals(email, contact.email) &&
+                Objects.equals(phone, contact.phone);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(email, phone);
     }
 }

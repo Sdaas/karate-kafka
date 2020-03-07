@@ -1,6 +1,7 @@
 package demo.order.domain;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class Order {
     private static int nextOrderId = 0;
@@ -57,5 +58,21 @@ public class Order {
                 ", lineItems=" + lineItems +
                 ", total=" + total +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Order order = (Order) o;
+        return id == order.id &&
+                total == order.total &&
+                Objects.equals(customer, order.customer) &&
+                Objects.equals(lineItems, order.lineItems);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, customer, lineItems, total);
     }
 }

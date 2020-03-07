@@ -1,11 +1,10 @@
 package demo.order;
 
+
 import demo.order.domain.LineItem;
 import demo.order.domain.Order;
 import org.apache.kafka.common.serialization.*;
-import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.*;
 import org.apache.kafka.streams.errors.LogAndContinueExceptionHandler;
 import org.apache.kafka.streams.kstream.*;
 import org.slf4j.Logger;
@@ -18,6 +17,32 @@ import java.util.Properties;
 public class OrderTotalStream {
 
     private static Logger logger = LoggerFactory.getLogger(OrderTotalStream.class.getName());
+    private String inputTopic;
+    private String outputTopic;
+    private String applicationName;
+
+    public OrderTotalStream(){
+        this.inputTopic = "order-input";
+        this.outputTopic = "order-output";
+        this.applicationName = "order-total-stream";
+    }
+
+    public String getInputTopic(){
+        return inputTopic;
+    }
+
+    public String getOutputTopic(){
+        return outputTopic;
+    }
+
+    public Properties getConfig(){
+        Properties config = new Properties();
+        config.put(StreamsConfig.APPLICATION_ID_CONFIG, applicationName);
+        config.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
+        config.put(StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, LogAndContinueExceptionHandler.class.getName());
+
+        return config;
+    }
 
     private static class OrderMapper implements ValueMapper<Order, Order> {
 
@@ -40,15 +65,10 @@ public class OrderTotalStream {
         }
     }
 
-    public static void main(String[] args) {
+    public Topology createTopology() {
 
-        // Configure the Stream. See https://kafka.apache.org/documentation/#streamsconfigs
-        Properties config = new Properties();
-        config.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
-        config.put(StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, LogAndContinueExceptionHandler.class.getName());
-
-        // The stream's application Id. The Consumer Group ID will be set to this value
-        config.put(StreamsConfig.APPLICATION_ID_CONFIG, "order-total-stream");
+        String inputTopic = getInputTopic();
+        String outputTopic = getOutputTopic();
 
         // Specify the Serdes for the input Stream and output streams. In both cases, the key is Long,
         // and the value is a Json of Order.class
@@ -64,19 +84,29 @@ public class OrderTotalStream {
         Consumed<Integer, Order> consumed = Consumed.with(keySerde,valueSerde);
         Produced<Integer,Order> produced = Produced.with(keySerde, valueSerde);
 
-
         // The processing topology
         StreamsBuilder builder = new StreamsBuilder();
-        KStream<Integer,Order> orderStream = builder.stream("order-input",consumed);
+        KStream<Integer,Order> orderStream = builder.stream(inputTopic,consumed);
+
         orderStream.peek((key, order) -> {
             logger.info("processing record");
             logger.info("key = " + key);
             logger.info("order = " + order);
         }).mapValues( new OrderMapper() )
-                .to("order-output",produced);
+                .to(outputTopic,produced);
+
+        return builder.build();
+    }
+
+    public static void main(String[] args) {
+
+        // Create the topology
+        OrderTotalStream orderTotal = new OrderTotalStream();
+        Topology topology = orderTotal.createTopology();
+        Properties config = orderTotal.getConfig();
 
         // Execute everything
-        KafkaStreams stream = new KafkaStreams(builder.build(),config);
+        KafkaStreams stream = new KafkaStreams(topology,config);
         stream.start();
 
         // shutdown hook to correctly close the streams application gracefully ...

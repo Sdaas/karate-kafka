@@ -1,5 +1,7 @@
 package demo.order.domain;
 
+import java.util.Objects;
+
 public class LineItem {
     private int id;
     private int quantity;
@@ -42,5 +44,21 @@ public class LineItem {
                 ", price=" + price +
                 ", total=" + total +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        LineItem lineItem = (LineItem) o;
+        return id == lineItem.id &&
+                quantity == lineItem.quantity &&
+                price == lineItem.price &&
+                total == lineItem.total;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, quantity, price, total);
     }
 }

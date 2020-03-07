@@ -132,14 +132,28 @@ On the consumer side, you need to specify a deserializer for the key / value the
 On the Producer Side, you should never have to configure a serializer either for the key or data
 
 
-## Demos
-### Order Demo
+## Examples
+
+### Order
 
 In this demo, the `OrderProduer` creates an order with multiple line items and publishes it to the `order-input` topic.
 The `OrderTotalStream` enriches this by calculating the total price of the order and publishes it
 to the `order-output` topic, where is it picked up by the `OrderConsumer`.
 
-Start up the Kafka cluster, and then start the `OrderTotalStream`, `OrderConsumer`, 
+#### Unit Tests 
+
+The unit test for this stream application is done using the `TopologyTestDriver`
+as described in the Kafka Streams Develoeper Guide for
+[Testing a Streams Application]
+(https://kafka.apache.org/11/documentation/streams/developer-guide/testing.html)
+
+```
+$ cd order
+$ mvn test
+```
+#### Demo
+
+To see how it works, start up the Kafka cluster, and then start the `OrderTotalStream`, `OrderConsumer`, 
 and `OrderProducer` ..
 
 ```
@@ -151,7 +165,9 @@ $ mvn exec:java@consumer
 $ mvn exec:java@producer
 ```
 
-### Order Test
+#### Test using karate-kafka
+
+To test this using karate-kafka ...
 
 * Ensure that the Kafka cluster is running ( or run `./setup.sh` to start it up)
 * Ensure that the `OrderProducer` is NOT running.

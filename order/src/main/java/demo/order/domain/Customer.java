@@ -1,5 +1,7 @@
 package demo.order.domain;
 
+import java.util.Objects;
+
 public class Customer {
     private String firstName;
     private String lastName;
@@ -46,5 +48,20 @@ public class Customer {
                 ", lastName='" + lastName + '\'' +
                 ", contact=" + contact +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Customer customer = (Customer) o;
+        return Objects.equals(firstName, customer.firstName) &&
+                Objects.equals(lastName, customer.lastName) &&
+                Objects.equals(contact, customer.contact);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(firstName, lastName, contact);
     }
 }
