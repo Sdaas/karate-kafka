@@ -134,6 +134,10 @@ On the Producer Side, you should never have to configure a serializer either for
 
 ## Examples
 
+Make sure to run `mvn install` from the root directory before running any of the examples
+below. This will ensure that that the `karate-kafka` jar is installed correctly in the local
+repository before it is used.
+
 ### Order
 
 In this demo, the `OrderProduer` creates an order with multiple line items and publishes it to the `order-input` topic.
@@ -143,7 +147,7 @@ to the `order-output` topic, where is it picked up by the `OrderConsumer`.
 #### Unit Tests 
 
 The unit test for this stream application is done using the `TopologyTestDriver`
-as described in the Kafka Streams Develoeper Guide for
+as described in the Kafka Streams Developer Guide for
 [Testing a Streams Application]
 (https://kafka.apache.org/11/documentation/streams/developer-guide/testing.html)
 
@@ -178,6 +182,8 @@ To test this using karate-kafka ...
 ( Right now you cam run this only form IDE - need to add support to do this from command line)
 
 ( Also right now the match is failing because I am using the wrong deserializer)
+
+mvn test -Dtest=CatsRunner
 
 
 ## Managing the local Kafka broker
@@ -242,8 +248,10 @@ allows us to start each test from the same known state.
 
 ## Interop between Karate and Java
 
+This section briefly talks about how Karate interoperates with Java ....
+
 ### Numbers
-Karate internally uses Nashorn. Due to the way Nashnorn works, the number coversion
+Karate internally uses Nashorn. Due to the way Nashnorn works, the number conversion
 between Karate DSL and Java can sometimes have issues. The exact conversion rules for 
 Nashorn vary by the JDK version and even the OS See [this](https://github.com/EclairJS/eclairjs-nashorn/wiki/Nashorn-Java-to-JavaScript-interoperability-issues)
 and [this](https://stackoverflow.com/questions/38140399/jdk-1-8-0-92-nashorn-js-engine-indexof-behaviour/38148917#38148917)

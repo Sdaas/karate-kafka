@@ -7,11 +7,11 @@
     <groupId>com.daasworld</groupId>
     <artifactId>karate-for-kafka</artifactId>
     <packaging>pom</packaging>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.0.1-SNAPSHOT</version>
 
     <modules>
-        <module>order</module>
         <module>karate-kafka</module>
+        <module>order</module>
     </modules>
 
     <name>karate-for-kafka</name>
