@@ -1,8 +1,10 @@
-(work in progress)
+
+[![Build Status](https://api.travis-ci.com/Sdaas/karate-kafka.svg?branch=master)](https://travis-ci.com/Sdaas/karate-kafka)
+ 
 
 ## Introduction
 
-TBD. ( Need to add context etc etc )
+( Work In Progress )
 
 ## Documentation
 
