@@ -5,19 +5,22 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.errors.WakeupException;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.IntegerDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 
 public class OrderConsumer{
 
     private static Logger logger = LoggerFactory.getLogger(OrderConsumer.class.getName());
     private KafkaConsumer<Integer, Order> consumer;
-
+    private CountDownLatch shutdownLatch = new CountDownLatch(1);
 
     public OrderConsumer() {
 
@@ -57,19 +60,47 @@ public class OrderConsumer{
                     }
                 }
             }
-        } catch (Exception e) {
+        } catch (WakeupException e) {
+            logger.info("Got WakeupException");
+            // nothing to be done here
+        }
+        catch (Exception e) {
             e.printStackTrace();
         } finally {
+            logger.info("shutting down the consumer ...");
             consumer.close();
             logger.info("consumer is now shut down.");
+            shutdownLatch.countDown();
+        }
+    }
+
+    public void close() {
+        logger.info("asking consumer to shutdown ...");
+        consumer.wakeup();
+        try {
+            shutdownLatch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
     public static void main(String[] args) {
 
         OrderConsumer c = new OrderConsumer();
+
+        // Adding shutdown hooks for clean shutdown.
+        Runtime.getRuntime().addShutdownHook(new Thread("consumer-shutdown-hook") {
+            @Override
+            public void run() {
+                // This call will block until the shutdown is complete
+                c.close();
+            }
+        });
+
+        System.out.println("Ctrl-C to exit ...");
+
+        // Start the consumer - its running in the main thread...
         c.process();
 
-        //TODO Shutdown code
     }
 }

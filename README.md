@@ -136,7 +136,7 @@ On the Producer Side, you should never have to configure a serializer either for
 
 ## Examples
 
-Make sure to run `mvn install` from the root directory before running any of the examples
+Make sure to run `mvn clean install` from the root directory before running any of the examples
 below. This will ensure that that the `karate-kafka` jar is installed correctly in the local
 repository before it is used.
 

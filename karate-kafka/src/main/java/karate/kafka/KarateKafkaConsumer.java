@@ -16,18 +16,17 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class KarateKafkaConsumer implements Runnable{
 
     private static Logger logger = LoggerFactory.getLogger(KarateKafkaConsumer.class.getName());
     private KafkaConsumer<Object,Object> kafka;
-    private String kafkaTopic;
-    private CountDownLatch latch = new CountDownLatch(1);
+    private CountDownLatch startupLatch = new CountDownLatch(1);
+    private CountDownLatch shutdownLatch = new CountDownLatch(1);
     private boolean partitionsAssigned = false;
 
     private LinkedBlockingQueue<String> outputList = new LinkedBlockingQueue<>();
-    private final AtomicBoolean closed = new AtomicBoolean(false);
+
 
     public KarateKafkaConsumer(String kafkaTopic, Map<String,String> map) {
 
@@ -46,7 +45,6 @@ public class KarateKafkaConsumer implements Runnable{
 
     // All constructors eventually call this ....
     private void create(String kafkaTopic, Properties cp) {
-        this.kafkaTopic = kafkaTopic;
 
         // Create the consumer and subscribe to the topic
         kafka= new KafkaConsumer<Object, Object>(cp);
@@ -61,7 +59,7 @@ public class KarateKafkaConsumer implements Runnable{
         // and wait ... and wait ...
         logger.info("Waiting for consumer to be ready..");
         try {
-            latch.await();
+            startupLatch.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -81,19 +79,12 @@ public class KarateKafkaConsumer implements Runnable{
     }
 
     public void close() {
-        logger.info("consumer is shutting down ...");
-        closed.set(true);
+        logger.info("asking consumer to shutdown ...");
         kafka.wakeup();
-    }
-
-    //TODO remove
-    private Object convert( String str ) {
-        ObjectMapper mapper = new ObjectMapper();
         try {
-            return mapper.readValue(str, Map.class);
-        } catch (JsonProcessingException e) {
-            // So this was not a JSON .. then it must be a normal string
-            return str;
+            shutdownLatch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
@@ -105,7 +96,7 @@ public class KarateKafkaConsumer implements Runnable{
             if( partitions.size() > 0 ) {
                 partitionsAssigned = true;
                 logger.info("partitions assigned to consumer ...");
-                latch.countDown();
+                startupLatch.countDown();
             }
         }
     }
@@ -117,7 +108,7 @@ public class KarateKafkaConsumer implements Runnable{
         // Then raise a signal ( countdown latch ) so that the constructor can return
 
         try {
-            while (!closed.get()) {
+            while (true) {
                 // Read for records and handle it
                 ConsumerRecords<Object,Object> records = kafka.poll(Duration.ofMillis(500));
                 signalWhenReady();
@@ -149,13 +140,15 @@ public class KarateKafkaConsumer implements Runnable{
                 }
             }
         } catch (WakeupException e) {
-            // Ignore exception if closing
-            if (!closed.get()) throw e;
+            logger.info("Got WakeupException");
+            // nothing to do here
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
+            logger.info("consumer is shutting down ...");
             kafka.close();
             logger.info("consumer is now shut down.");
+            shutdownLatch.countDown();
         }
     }
 

@@ -12,11 +12,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
 
 
 public class OrderTotalStream {
 
     private static Logger logger = LoggerFactory.getLogger(OrderTotalStream.class.getName());
+    private static final CountDownLatch latch = new CountDownLatch(1);
     private String inputTopic;
     private String outputTopic;
     private String applicationName;
@@ -103,13 +105,33 @@ public class OrderTotalStream {
         // Create the topology
         OrderTotalStream orderTotal = new OrderTotalStream();
         Topology topology = orderTotal.createTopology();
-        Properties config = orderTotal.getConfig();
+
+        // print out the topology
+        System.out.println(topology.describe());
 
         // Execute everything
+        Properties config = orderTotal.getConfig();
         KafkaStreams stream = new KafkaStreams(topology,config);
-        stream.start();
 
-        // shutdown hook to correctly close the streams application gracefully ...
-        Runtime.getRuntime().addShutdownHook(new Thread(stream::close));
+        // Adding shutdown hooks for clean shutdown.
+        Runtime.getRuntime().addShutdownHook(new Thread("streams-shutdown-hook") {
+            @Override
+            public void run() {
+                System.out.println("Shutting down the stream ...");
+                stream.close();
+                latch.countDown();
+            }
+        });
+
+        try {
+            System.out.println("Starting the stream ...");
+            stream.start();
+            System.out.println("Ctrl-C to exit ...");
+            latch.await();
+            System.out.println("Stream has been shutdown.");
+        } catch (Throwable e) {
+            System.exit(1);
+        }
+        System.exit(0);
     }
 }

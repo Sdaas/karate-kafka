@@ -14,11 +14,15 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class OrderProducer {
 
     private static Logger logger = LoggerFactory.getLogger(OrderProducer.class.getName());
     private KafkaProducer<Integer, Order> producer;
+    private AtomicBoolean shutdown = new AtomicBoolean(false);
+    private CountDownLatch shutdownLatch = new CountDownLatch(1);
 
     private Properties getProducerConfig() {
 
@@ -44,6 +48,22 @@ public class OrderProducer {
         return pp;
     }
 
+    public OrderProducer() {
+        Properties pp = getProducerConfig();
+        producer = new KafkaProducer<>(pp);
+    }
+
+    private String inspect(Order order ){
+        ObjectMapper objectMapper = new ObjectMapper();
+        String str = null;
+        try {
+            str = objectMapper.writeValueAsString(order);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return str;
+    }
+
     public void produce(Order order){
         Integer id = order.getId();
         ProducerRecord<Integer,Order> record = new ProducerRecord<>("order-input", id, order);
@@ -59,20 +79,34 @@ public class OrderProducer {
         });
     }
 
-    public OrderProducer() {
-        Properties pp = getProducerConfig();
-        producer = new KafkaProducer<>(pp);
+    public void produceForever() {
+
+        while(! shutdown.get()) {
+            Order order = createRandomOrder();
+            // for debugging
+            inspect(order);
+            produce(order);
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        logger.info("shutting down producer...");
+        producer.close();
+        shutdownLatch.countDown();
+        logger.info("producer has been shutdown.");
     }
 
-    private String inspect(Order order ){
-        ObjectMapper objectMapper = new ObjectMapper();
-        String str = null;
+    public void close() {
+        logger.info("asking producer to shutdown ...");
+        shutdown.set(true);
         try {
-            str = objectMapper.writeValueAsString(order);
-        } catch (JsonProcessingException e) {
+            shutdownLatch.await();
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        return str;
+        logger.info("producer has been shutdown.");
     }
 
     private static Order createRandomOrder(){
@@ -100,19 +134,17 @@ public class OrderProducer {
 
     public static void main(String[] args) {
         OrderProducer p = new OrderProducer();
-        while(true) {
 
-            Order order = createRandomOrder();
-
-            // for debugging
-            p.inspect(order);
-            p.produce(order);
-
-            try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        // Adding shutdown hooks for clean shutdown.
+        Runtime.getRuntime().addShutdownHook(new Thread("producer-shutdown-hook") {
+            @Override
+            public void run() {
+                // This call will block until the shutdown is complete
+                p.close();
             }
-        }
+        });
+
+        System.out.println("Ctrl-C to exit ...");
+        p.produceForever();
     }
 }
