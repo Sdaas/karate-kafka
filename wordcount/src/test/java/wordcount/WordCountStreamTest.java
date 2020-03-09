@@ -4,15 +4,14 @@ import demo.wordcount.WordCountStream;
 import org.apache.kafka.common.serialization.*;
 import org.apache.kafka.streams.*;
 
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import org.apache.kafka.streams.test.TestRecord;
 import org.junit.*;
+
 
 
 public class WordCountStreamTest {
@@ -22,7 +21,7 @@ public class WordCountStreamTest {
     private WordCountStream wordCount;
     private Properties config;
     private TestInputTopic<String,String> testInputTopic;
-    private TestOutputTopic<String,String> testOutputTopic;
+    private TestOutputTopic<String,Long> testOutputTopic;
 
     @Before
     public void setup(){
@@ -37,9 +36,10 @@ public class WordCountStreamTest {
 
         Serializer<String> stringSerializer = new StringSerializer();
         Deserializer<String> stringDeserializer = new StringDeserializer();
+        Deserializer<Long> longDeserializer = new LongDeserializer();
 
         testInputTopic = testDriver.createInputTopic( inputTopicName, stringSerializer, stringSerializer);
-        testOutputTopic = testDriver.createOutputTopic(outputTopicName, stringDeserializer, stringDeserializer);
+        testOutputTopic = testDriver.createOutputTopic(outputTopicName, stringDeserializer, longDeserializer);
     }
 
     @After
@@ -55,10 +55,10 @@ public class WordCountStreamTest {
         String input = "hello Kafka hello";
         testInputTopic.pipeInput(input);
 
-        Map<String,String> out = testOutputTopic.readKeyValuesToMap();
+        Map<String,Long> out = testOutputTopic.readKeyValuesToMap();
         assertTrue("expect the output to have the word hello", out.containsKey("hello") );
-        assertEquals("expected hello to have a count of 2", "2", out.get("hello"));
+        assertEquals("expected hello to have a count of 2", new Long(2), out.get("hello"));
         assertTrue("expect the output to have the word kafka", out.containsKey("kafka") );
-        assertEquals("expected kafka to have a count of 1", "1", out.get("kafka"));
+        assertEquals("expected kafka to have a count of 1", new Long(1), out.get("kafka"));
     }
 }

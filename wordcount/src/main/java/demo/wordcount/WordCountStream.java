@@ -41,9 +41,6 @@ public class WordCountStream {
         config.put(StreamsConfig.APPLICATION_ID_CONFIG, applicationName);
         config.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
         config.put(StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, LogAndContinueExceptionHandler.class.getName());
-        config.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
-        config.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
-
         config.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG,1000);
 
         return config;
@@ -54,20 +51,25 @@ public class WordCountStream {
         String inputTopic = getInputTopic();
         String outputTopic = getOutputTopic();
 
+        Consumed<String,String> consumed = Consumed.with( Serdes.String(), Serdes.String());
+        Produced<String,Long> produced = Produced.with(Serdes.String(), Serdes.Long());
+        Grouped<String,String> grouped = Grouped.with(Serdes.String(), Serdes.String());
+
         // The processing topology.
         StreamsBuilder builder = new StreamsBuilder();
-        KStream<String,String> wordStream = builder.stream(inputTopic);
+        KStream<String,String> wordStream = builder.stream(inputTopic,consumed);
 
+        // we cannot called groupByKey() as that uses the default serdes which we have not specified
+        // better to call groupByKey(grouped) and be explicit about the serdes
 
         wordStream.peek((key, value) -> logger.info("Stream got : " + value))
                 .flatMapValues(value -> Arrays.asList(value.toLowerCase(Locale.getDefault()).split("\\W+")))
                 .map((key, value) -> new KeyValue<String, String>(value, value))
-                .groupByKey()
+                .groupByKey(grouped)
                 .count()
                 .toStream()
                 .peek((key,value) -> logger.info("Output : " + key + " " + value))
-                .mapValues(value -> Long.toString(value))
-                .to(outputTopic);
+                .to(outputTopic,produced);
 
         return builder.build();
     }
