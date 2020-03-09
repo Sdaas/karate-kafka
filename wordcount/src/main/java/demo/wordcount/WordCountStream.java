@@ -44,7 +44,7 @@ public class WordCountStream {
         config.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         config.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
 
-        config.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG,30000);
+        config.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG,1000);
 
         return config;
     }
