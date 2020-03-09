@@ -11,7 +11,7 @@ services:
     environment:
       KAFKA_ADVERTISED_HOST_NAME: localhost
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_CREATE_TOPICS: "test-topic:1:1,test-input:1:1,test-output:1:1,order-input:1:1,order-output:1:1"
+      KAFKA_CREATE_TOPICS: "test-topic:1:1,test-input:1:1,test-output:1:1,order-input:1:1,order-output:1:1,words-input:1:1,words-output:1:1"
       KAFKA_DELETE_TOPIC_ENABLE: "true"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
