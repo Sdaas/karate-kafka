@@ -8,6 +8,24 @@
     <artifactId>karate-for-kafka</artifactId>
     <packaging>pom</packaging>
     <version>0.0.1-SNAPSHOT</version>
+    <name>karate-for-kafka</name>
+    <description>Using Karate to Test Kafka</description>
+
+    <properties>
+        <java.version>1.8</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <kafka-streams.version>2.4.0</kafka-streams.version>
+        <kafka-clients.version>2.4.0</kafka-clients.version>
+        <kafka-streams-test-utils.version>2.4.0</kafka-streams-test-utils.version>
+        <karate.version>0.9.5</karate.version>
+        <jackson.version>2.10.2</jackson.version>
+
+        <junit.version>4.12</junit.version>
+        <mockito-core.version>3.2.4</mockito-core.version>
+        <slf4j.version>1.6.2</slf4j.version>
+        <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
+        <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+    </properties>
 
     <modules>
         <module>karate-kafka</module>
@@ -15,12 +33,7 @@
         <module>wordcount</module>
     </modules>
 
-    <name>karate-for-kafka</name>
-    <description>Using Karate to Test Kafka</description>
 
-    <properties>
-        <java.version>1.8</java.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+
 
 </project>

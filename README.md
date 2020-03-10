@@ -9,9 +9,11 @@
 ## Documentation
 
 - Must have the following on your machine
-- Java 8
-- Docker
-- Kafka command-line shell
+- Java 1.8.0
+- Maven 3.6.2
+- Docker 19.03.5
+- Docker compose 1.25
+- Kafka command-line shell 2.4.0
 
 ### Kafka Producer
 
