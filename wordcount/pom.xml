@@ -5,11 +5,12 @@
     <parent>
         <artifactId>karate-for-kafka</artifactId>
         <groupId>com.daasworld</groupId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>${revision}</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>wordcount</artifactId>
+    <version>${revision}</version>
     <packaging>jar</packaging>
 
     <dependencies>
@@ -105,14 +106,13 @@
         <dependency>
             <groupId>com.daasworld</groupId>
             <artifactId>karate-kafka</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>${revision}</version>
             <scope>test</scope>
         </dependency>
 
     </dependencies>
 
     <build>
-
         <testResources>
             <testResource>
                 <directory>src/test/java</directory>
