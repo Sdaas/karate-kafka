@@ -4,7 +4,7 @@
 
 ## Introduction
 
-( Work In Progress )
+( Work in Progress to Split this into the main code and demo apps )
 
 ## Documentation
 
