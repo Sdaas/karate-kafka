@@ -1,8 +1,12 @@
 package karate.kafka;
 
-import org.junit.runner.RunWith;
-import com.intuit.karate.junit4.Karate;
+import com.intuit.karate.junit5.Karate;
 
-@RunWith(Karate.class)
-public class KafkaRunner {
+class KafkaRunner {
+
+    @Karate.Test
+    Karate testAll() {
+        return Karate.run().relativeTo(getClass());
+    }
+
 }

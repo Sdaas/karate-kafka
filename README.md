@@ -1,20 +1,18 @@
 
 [![Build Status](https://api.travis-ci.com/Sdaas/karate-kafka.svg?branch=master)](https://travis-ci.com/Sdaas/karate-kafka)
  
-
 ## Introduction
 
-( Work in Progress to Split this into the main code and demo apps )
+This project provides a library to connect KarateDSL Kafka. It provides a `KafkaProducer` and
+a `KakaConsumer` that can be called from a Karate feature.
+
+## Quick Demo
+
+* Start up the local Kafka cluster by running `./startup.sh`
+* Run XXXXXXX
+* Shut down the local Kafka cluster by running `./teardown.sh`
 
 ## Documentation
-
-- Must have the following on your machine
-- Java 1.8.0
-- Maven 3.6.2
-- Docker 19.03.5
-- Docker compose 1.25
-- Kafka command-line shell 2.4.0
-
 ### Kafka Producer
 
 Creating a Kafka producer with the default properties ...
@@ -136,60 +134,6 @@ On the consumer side, you need to specify a deserializer for the key / value the
 On the Producer Side, you should never have to configure a serializer either for the key or data
 
 
-## Examples
-
-Make sure to run `mvn clean install` from the root directory before running any of the examples
-below. This will ensure that that the `karate-kafka` jar is installed correctly in the local
-repository before it is used.
-
-### Order
-
-In this demo, the `OrderProduer` creates an order with multiple line items and publishes it to the `order-input` topic.
-The `OrderTotalStream` enriches this by calculating the total price of the order and publishes it
-to the `order-output` topic, where is it picked up by the `OrderConsumer`.
-
-#### Unit Tests 
-
-The unit test for this stream application is done using the `TopologyTestDriver`
-as described in the Kafka Streams Developer Guide for
-[Testing a Streams Application]
-(https://kafka.apache.org/11/documentation/streams/developer-guide/testing.html)
-
-```
-$ cd order
-$ mvn test
-```
-#### Demo
-
-To see how it works, start up the Kafka cluster, and then start the `OrderTotalStream`, `OrderConsumer`, 
-and `OrderProducer` ..
-
-```
-$ ./setup.sh
-$ cd order
-$ mvn clean package
-$ mvn exec:java@total
-$ mvn exec:java@consumer
-$ mvn exec:java@producer
-```
-
-#### Test using karate-kafka
-
-To test this using karate-kafka ...
-
-* Ensure that the Kafka cluster is running ( or run `./setup.sh` to start it up)
-* Ensure that the `OrderProducer` is NOT running.
-* Ensure that the `OrderConsumer` is NOT running.
-* Ensure that the `OrderTotalStream` is running.
-* From the IDE, run `order-demo.feature`
-
-( Right now you cam run this only form IDE - need to add support to do this from command line)
-
-( Also right now the match is failing because I am using the wrong deserializer)
-
-mvn test -Dtest=CatsRunner
-
-
 ## Managing the local Kafka broker
 
 The configuration for Kafka and Zookeeper is specified in `kafka-single-broker.yml`. See
@@ -200,7 +144,7 @@ The configuration for Kafka and Zookeeper is specified in `kafka-single-broker.y
 From the command line, run 
 
 ```
-$ ./setup.sh
+$ ./startup.sh
 Starting karate-kafka_zookeeper_1 ... done
 Starting karate-kafka_kafka_1     ... done
 CONTAINER ID        IMAGE                    NAMES
@@ -208,47 +152,18 @@ ce9b01556d15        wurstmeister/zookeeper   karate-kafka_zookeeper_1
 33685067cb82        wurstmeister/kafka       karate-kafka_kafka_1
 *** sleeping for 10 seconds (give time for containers to spin up)
 *** the following topic were created ....
-test-input
-test-output
 test-topic
 ```
 
-To smoke test this, we will setup a consumer that will echo whatever the producer writes. 
+To smoke test this, we will setup a consumer that will echo whatever the producer writes. In
+one terminal start off a consumer by running `./consumer.sh`. In another terminal, start off
+a producer by running `./producer.sh`.  Type something into the producer. If all goes well, 
+you should see the consumer echo it back.
 
-Start off a consumer ...
-
-```
-kafka-console-consumer.sh --bootstrap-server localhost:9092 \
-    --topic test-topic \
-    --from-beginning \
-    --formatter kafka.tools.DefaultMessageFormatter \
-    --property print.key=true \
-    --property print.value=true \
-    --property print.timestamp=true \
-    --property key.deserializer=org.apache.kafka.common.serialization.StringDeserializer \
-    --property value.deserializer=org.apache.kafka.common.serialization.StringDeserializer
-```
-
-In another terminal start off a producer, and enter some data for the producer. 
-```
-$ kafka-console-producer.sh --broker-list 127.0.0.1:9092 --topic test-input
->
-> (ctrl C to quit)
-```
-
-Type something into the producer. If all goes well, you should see the consumer echo it back.
-
-### Tearing down the kafka cluster
-
-From the command-line, run
-```
-$ ./teardown.sh
-```
-
-This stops all the zookeeper and kafka broker containers, and also delete the containers. So
-all the data written to the kafka cluster will be lost. During testing, this is good because it
+From the command-line, run `./teardown.sh` to tear down the cluster. This stops zookeeper
+and all the kafka brokers, and also deletes the containers. This means all the data written
+to the kafka cluster will be lost. During testing, this is good because it
 allows us to start each test from the same known state.
-
 
 ## Interop between Karate and Java
 
@@ -311,7 +226,6 @@ Kafka consumer should output all the data written by the producer.
 
 * [Running Kafka inside Docker](https://github.com/wurstmeister/kafka-docker)
 * [Markdown syntax](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)
-* [Word count usin Kafka Streams](https://github.com/gwenshap/kafka-streams-wordcount) by Gwen Shapiro
 * [Java-Javascript Interop Issues in Nashorn](https://github.com/EclairJS/eclairjs-nashorn/wiki/Nashorn-Java-to-JavaScript-interoperability-issues)
 
 

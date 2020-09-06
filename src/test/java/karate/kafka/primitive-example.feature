@@ -1,7 +1,7 @@
 Feature: Where the key and values are primitive data types
 
   # Scenarios to demonstrate where the key or value are Integer, Long, or String. There is also
-  # a scenario where the there is no key
+  # a scenario where there is no key
 
   Background:
 
