@@ -3,14 +3,48 @@
  
 ## Introduction
 
-This project provides a library to connect KarateDSL Kafka. It provides a `KafkaProducer` and
-a `KakaConsumer` that can be called from a Karate feature.
+Work In Progress
 
+This project provides a library to test Kafka applications using KarateDSL. It provides a `KafkaProducer` and
+a `KakaConsumer` that can be called from a Karate feature. An example :
+
+```cucumber
+Feature: Karate-Kafka Demo
+
+  Background:
+
+    * def KafkaConsumer = Java.type('karate.kafka.KarateKafkaConsumer')
+    * def KafkaProducer = Java.type('karate.kafka.KarateKafkaProducer')
+    * def topic = 'test-topic'
+
+  Scenario: Write strings to test-topic and read it back
+
+    * def kc = new KafkaConsumer(topic)
+    * def kp = new KafkaProducer()
+    * kp.send(topic, "hello world")
+    * kp.send(topic, "the_key", "hello again")
+
+    * json output1 = kc.take()
+    * json output2 = kc.take()
+
+    * kp.close()
+    * kc.close()
+
+    # Doing the match
+    * match output1 == { key : '#null', value : 'hello world' }
+    * match output2 == { key : 'the_key', value : 'hello again' }
+```
 ## Quick Demo
 
-* Start up the local Kafka cluster by running `./startup.sh`
-* Run XXXXXXX
-* Shut down the local Kafka cluster by running `./teardown.sh`
+Start up a single-node Kafka cluster locally with a topic called `test-topic`. Running
+`KarateTests` will invoke `src/test/java/karate/kafka/example.feature` which will attempt to
+write a few messages to this topic and read it back. Finally, shut down the Kafka cluster.
+
+```
+$ ./startup.sh   
+$ mvn test -Dtest=KarateTests  
+$ ./teardown.sh  
+```
 
 ## Documentation
 ### Kafka Producer
@@ -22,9 +56,7 @@ Creating a Kafka producer with the default properties ...
 * def kp = new KafkaProducer()
 ```
 
-The following default properties are used to create the producer. The `karate.kafka.MyGenericSerializer` tries
-to automatically guess the key/value type and attempts to serialize it as `Integer`, `Long`, `String`, or `JSON` 
-based on the input. 
+The following default properties are used to create the producer. 
 
 ```
 {
@@ -40,7 +72,9 @@ based on the input.
 }
 ```
 
-These default properties should work most of the time for testing, but you can always
+The `karate.kafka.MyGenericSerializer` tries
+to automatically guess the key/value type and attempts to serialize it as `Integer`, `Long`, `String`, or `JSON` 
+based on the input. These default properties should work most of the time for testing, but you can always
 override them ...
 
 ```cucumber
@@ -52,21 +86,20 @@ override them ...
 * def props = KafkaProducer.getDefaultProperties()
 ```
 
-Using a Kafka producer ....
+Producing a message with or without a key
 ```cucumber
-# Write a message with or without a key
 * kp.send(topic, "hello world")
 * kp.send(topic, "the key", "hello again")
+```
 
-# Using JSON key and/or values
+Producing a JSON message 
+```cucumber
 * def key = { ... }
 * def value= { ... }
 * kp.send(topic, key, value)
-
-# Inspecting the results of a produce operation
-# Note that 
-*    - you must specify a key
-*    - the result is NOT JSON
+```
+Inspecting the results of a produce operation. Note that you must specify a key, and that the result is NOT JSON
+```cucumber
 * def handler = function(msg){ karate.signal(msg) }
 * kp.send(topic, "the key", "hello with handler", handler)
 * def result = karate.listen(2000)
@@ -74,16 +107,13 @@ Using a Kafka producer ....
 
 Terminating the Kafka producer ...
 ```
-# Close the Kafka producer
 * kp.close()
 ```
 
 ### Kafka Consumer
 
-Creating a Kafka consumer with the default properties ...
+Creating a Kafka consumer with the default properties. A consumer starts listening to the topic as soon as it is created
 ```cucumber
-# Create a Kafka consumer with the default properties. A consumer starts listening to
-# the input topic as soon as it is created
 * def kc = new KafkaConsumer(topic)
 ```
 
@@ -99,7 +129,6 @@ The following default properties are used to create the consumer
 
 Creating a consumer with specified properties ...
 ```cucumber
-# Create a Kafka consumer with the specified properties
 * def props = { ... }
 * def kc = new KafkaConsumer(topic, props)
 
@@ -107,16 +136,13 @@ Creating a consumer with specified properties ...
 * def props = KafkaConsumer.getDefaultProperties()
 ```
 
-Using a Kafka producer ...
-```cucumber
-# Read a record from the topic. This call will block until data is availale    
+Read a record from the topic. This call will block until data is available  
+```cucumber  
 * json output = kc.take();
 ```
 
 Terminating the Kafka consumer ...
 ```cucumber
-# Close the consumer
-# This is very important. Kafka allows only one consumer per consumer group to listen to a partition
 * kc.close()
 ```
 
@@ -132,7 +158,6 @@ On the consumer side, you need to specify a deserializer for the key / value the
 | JSON | auto-configured  |
 
 On the Producer Side, you should never have to configure a serializer either for the key or data
-
 
 ## Managing the local Kafka broker
 
@@ -201,27 +226,7 @@ To pass in big numbers, first convert them in `java.math.BigDecimal` as describe
 * def out = hk.echoBigDecimal(param)
 * match out == param
 ```
-    
-## Producing Data to Kafka
-
-We will write something to the `test-topic` in Kafka and consume it through the console consumer
-
-Start the Kafka cluster and a consumer
-```
-$ ./setup.sh
-$ kafka-console-consumer.sh --bootstrap-server localhost:9092 \
-      --topic test-topic \
-      --formatter kafka.tools.DefaultMessageFormatter \
-      --property print.key=true \
-      --property print.value=true \
-      --property print.timestamp=true \
-      --property key.deserializer=org.apache.kafka.common.serialization.StringDeserializer \
-      --property value.deserializer=org.apache.kafka.common.serialization.StringDeserializer
-```
-
-From the IDE, run `kafka-producer.feature` in the folder `karate-kafka/src/test/java/karate/kafka/`. If all goes well, the 
-Kafka consumer should output all the data written by the producer.
-
+   
 ### References
 
 * [Running Kafka inside Docker](https://github.com/wurstmeister/kafka-docker)

@@ -126,13 +126,6 @@ public class KarateKafkaConsumer implements Runnable{
                             logger.info("Key : " + key + " Type: " + key.getClass().getName());
                         logger.info("Value : " + value + " Type: " + value.getClass().getName());
 
-                        /*
-                        HashMap<Object,Object> map = new HashMap<>();
-                        if( key != null ) map.put("key", key);
-                        map.put("value", value);
-                        outputList.put(map);
-                        */
-
                         String str = "{key: " + key + ", value: " + value + "}";
                         outputList.put(str);
 

@@ -63,7 +63,7 @@
     <build>
         <testResources>
             <testResource>
-                <directory>karate-kafka/src/test/java</directory>
+                <directory>src/test/java</directory>
                 <excludes>
                     <exclude>**/*.java</exclude>
                 </excludes>

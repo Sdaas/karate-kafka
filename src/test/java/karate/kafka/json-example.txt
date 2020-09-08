@@ -50,4 +50,6 @@ Feature: Kafka Producer and Consumer using JSON
     * def valueout = output.value
     * match keyout.id == 10
     * match valueout.person.firstName == 'Santa'
+    * print "*********"
+    * print output
 
