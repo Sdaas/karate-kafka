@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 public class KafkaRunner {
 
     @Test
-    void testParallel() {
+    void testSerial() {
         Results results = Runner.path("classpath:karate/kafka").tags("~@ignore").parallel(1);
         assertEquals(0, results.getFailCount(), results.getErrorMessages());
     }
