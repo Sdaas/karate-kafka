@@ -1,4 +1,5 @@
 
+@parallel=false
 Feature: Karate-Kafka Demo
 
   # Demonstration of writing a string to a Kafka topic and reading it back

@@ -1,3 +1,4 @@
+@parallel=false
 Feature: Kafka Producer and Consumer using JSON
 
   # Demonstration of writing JSON to a Kafka topic and reading it back
@@ -18,8 +19,6 @@ Feature: Kafka Producer and Consumer using JSON
 
   Scenario: Write JSON to test-topic and read it back
 
-    # Create a consumer. It starts listening to the topic as soon as it is created
-
     * def kp = new KafkaProducer()
     * def props = KafkaConsumer.getDefaultProperties()
     * def kc = new KafkaConsumer(topic,props)
@@ -27,7 +26,6 @@ Feature: Kafka Producer and Consumer using JSON
     * def value =
     """
     {
-      id: 10,
       person : {
           firstName : "Santa",
           lastName : "Claus"
@@ -51,5 +49,4 @@ Feature: Kafka Producer and Consumer using JSON
     * match keyout.id == 10
     * match valueout.person.firstName == 'Santa'
     * print "*********"
-    * print output
 
