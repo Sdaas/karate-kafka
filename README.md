@@ -6,7 +6,7 @@
 Work In Progress
 
 This project provides a library to test Kafka applications using KarateDSL. It provides a `KafkaProducer` and
-a `KakaConsumer` that can be called from a Karate feature. An example :
+a `KafkaConsumer` that can be called from a Karate feature. An example :
 
 ```cucumber
 Feature: Karate-Kafka Demo
@@ -42,7 +42,7 @@ write a few messages to this topic and read it back. Finally, shut down the Kafk
 
 ```
 $ ./startup.sh   
-$ mvn test -Dtest=KarateTests  
+$ mvn test -Dtest=KafkaRunner  
 $ ./teardown.sh  
 ```
 
@@ -145,6 +145,17 @@ Terminating the Kafka consumer ...
 ```cucumber
 * kc.close()
 ```
+
+### Running Features and Scearios
+
+By default, Karate runs all the features ( and the scenarios in each feature) in parallel. Having multiple threads reading and
+and writing from Kafka can lead to interleaving of results from different test cases. For this, it is best to run all the features
+and scenario in a single thread. To do this, the following changes are needed:
+
+* Add `@parallel=false` at the top of each feature file. This will ensure that the scenarios are run serially. BTW, Kafka does NOT 
+guarantee that the scenarios will be executed in the same order that they appear in the feature file
+
+* Set the number of threads to 1 in the `xxxRunner.java` file. e.g., `Runner.path(...).parallel(1);
 
 ### Cheat Sheet for configuring Serializers and Deserializers
 
