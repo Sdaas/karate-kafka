@@ -47,6 +47,26 @@ $ ./teardown.sh
 ```
 
 ## Documentation
+### Using this in your project
+
+Add the following to your `pom.xml` :
+```xml
+<dependency>
+    <groupId>com.daasworld</groupId>
+    <artifactId>karate-kafka</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+</dependency>
+```
+and
+```xml
+<repositories>
+    <repository>
+        <id>karate-kafka</id>
+        <url>https://raw.github.com/sdaas/karate-kafka/mvn-repo/</url>
+    </repository>
+</repositories>
+
+```
 ### Kafka Producer
 
 Creating a Kafka producer with the default properties ...
@@ -146,7 +166,7 @@ Terminating the Kafka consumer ...
 * kc.close()
 ```
 
-### Running Features and Scearios
+### Running Features and Scenarios
 
 By default, Karate runs all the features ( and the scenarios in each feature) in parallel. Having multiple threads reading and
 and writing from Kafka can lead to interleaving of results from different test cases. For this, it is best to run all the features
@@ -237,11 +257,21 @@ To pass in big numbers, first convert them in `java.math.BigDecimal` as describe
 * def out = hk.echoBigDecimal(param)
 * match out == param
 ```
-   
+
+### Developer Instructions
+
+( work in progress ) for those developing this code
+
+To deploy to github
+* create an oauth2 token ( PErsonal Access Token)  
+    * Settings -> Developer Settings -> Personal Access Token
+    * give repo and read:user access
+* mvn deploy
+
 ### References
 
 * [Running Kafka inside Docker](https://github.com/wurstmeister/kafka-docker)
 * [Markdown syntax](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)
 * [Java-Javascript Interop Issues in Nashorn](https://github.com/EclairJS/eclairjs-nashorn/wiki/Nashorn-Java-to-JavaScript-interoperability-issues)
-
+* [Hosting a maven repository on github](https://dev.to/iamthecarisma/hosting-a-maven-repository-on-github-site-maven-plugin-9ch)
 
