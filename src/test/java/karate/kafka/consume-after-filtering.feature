@@ -23,13 +23,13 @@ Feature: Karate-Kafka Demo-2
     # Create a producer
     * def kp = new KafkaProducer()
     # Sending a message without key ...
-    * kp.send(topic, "{\"message\": \"hello world\"}")
+    * kp.send(topic, { message: "hello world"} )
     # Sending a message with a key
-    * kp.send(topic, "the_key", "{\"message\" : \"hello again\"}")
+    * kp.send(topic, "the_key", { message: "hello again"})
     # Sending a message with a key that starts with test.
-    * kp.send(topic, "test_key", "{\"message\":\"hello from test\"}")
+    * kp.send(topic, "test_key", { message: "hello from test"})
     # Sending another message with a key that starts with test and the value that starts with hi. .
-    * kp.send(topic, "test_key2", "{\"message\":\"hi from test\"}")
+    * kp.send(topic, "test_key2", { message : "hi from test"} )
     # Remember to close the producer ....
     * kp.close()
 

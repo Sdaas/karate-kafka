@@ -155,6 +155,11 @@ Creating a consumer with specified properties ...
 # Get the default Properties
 * def props = KafkaConsumer.getDefaultProperties()
 ```
+Create a customer that filters the key and the value. The key filter is a regular
+expression, and the value filter is a [jsonPath](https://github.com/json-path/JsonPath) predicate expression. 
+```cucumber
+* def kc = new KafkaConsumer(topic, consumerProps, "test.*", "[?(@.message =~ /hi.*/)]")
+```
 
 Read a record from the topic. This call will block until data is available  
 ```cucumber  
