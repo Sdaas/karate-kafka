@@ -166,6 +166,11 @@ Read a record from the topic. This call will block until data is available
 * json output = kc.take();
 ```
 
+Read multiple records from the topic. This call will block until data is available  
+```cucumber  
+* json output = kc.take(5);
+```
+
 Terminating the Kafka consumer ...
 ```cucumber
 * kc.close()
@@ -268,7 +273,7 @@ To pass in big numbers, first convert them in `java.math.BigDecimal` as describe
 ( work in progress ) for those developing this code
 
 To deploy to github
-* create an oauth2 token ( PErsonal Access Token)  
+* create an oauth2 token ( Personal Access Token)  
     * Settings -> Developer Settings -> Personal Access Token
     * give repo and read:user access
 * mvn deploy

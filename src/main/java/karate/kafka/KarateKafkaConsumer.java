@@ -34,16 +34,15 @@ public class KarateKafkaConsumer implements Runnable {
 
   private BlockingQueue<String> outputList = new LinkedBlockingQueue<>();
 
-  public KarateKafkaConsumer(String kafkaTopic, Map<String, String> map) {
-    this(kafkaTopic, map, null, null);
+  public KarateKafkaConsumer(String kafkaTopic, Map<String, String> consumerProperties) {
+    this(kafkaTopic, consumerProperties, null, null);
   }
 
   public KarateKafkaConsumer(String kafkaTopic) {
     this(kafkaTopic, null, null);
   }
 
-  public KarateKafkaConsumer(
-      String kafkaTopic, String keyFilterExpression, String valueFilterExpression) {
+  public KarateKafkaConsumer( String kafkaTopic, String keyFilterExpression, String valueFilterExpression) {
     Properties cp = getDefaultProperties();
     setKeyValueFilters(keyFilterExpression, valueFilterExpression);
     create(kafkaTopic, cp);
@@ -51,13 +50,14 @@ public class KarateKafkaConsumer implements Runnable {
 
   public KarateKafkaConsumer(
       String kafkaTopic,
-      Map<String, String> map,
+      Map<String, String> consumerProperties,
       String keyFilterExpression,
       String valueFilterExpression) {
+
     setKeyValueFilters(keyFilterExpression, valueFilterExpression);
     Properties cp = new Properties();
-    for (String key : map.keySet()) {
-      String value = map.get(key);
+    for (String key : consumerProperties.keySet()) {
+      String value = consumerProperties.get(key);
       cp.setProperty(key, value);
     }
     create(kafkaTopic, cp);
@@ -106,11 +106,8 @@ public class KarateKafkaConsumer implements Runnable {
     Properties cp = new Properties();
     cp.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
 
-    cp.setProperty(
-        ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-    cp.setProperty(
-        ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-
+    cp.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+    cp.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
     cp.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "karate-kafka-default-consumer-group");
     return cp;
   }
@@ -163,6 +160,7 @@ public class KarateKafkaConsumer implements Runnable {
             else logger.info("Key : " + key + " Type: " + key.getClass().getName());
             logger.info("Value : " + value + " Type: " + value.getClass().getName());
 
+            // We want to return a String that can be interpreted by Karate as a JSON
             String str = "{key: " + key + ", value: " + value + "}";
             if (!isNull(keyFilter) && !filterByKey(key)) {
               continue;
@@ -220,5 +218,22 @@ public class KarateKafkaConsumer implements Runnable {
   public synchronized String take() throws InterruptedException {
     logger.info("take() called");
     return outputList.take(); // wait if necessary for data to become available
+  }
+
+  /**
+   * @param n  The number of records to read
+   * @return The next available kafka record in the Queue (head of the queue). If no record is
+   *     available, then the call is blocked.
+   * @throws InterruptedException - if interrupted while waiting
+   */
+  public synchronized String take(int n) throws InterruptedException {
+    logger.info("take() called");
+    List<String> list = new ArrayList<>();
+    for(int i=0; i<n; i++){
+      list.add(outputList.take()); // wait if necessary for data to become available
+    }
+    // We want to return a String that can be interpreted by Karate as a JSON
+    String str = list.toString();
+    return str;
   }
 }
