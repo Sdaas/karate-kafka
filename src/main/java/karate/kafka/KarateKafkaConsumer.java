@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 
 import static com.jayway.jsonpath.internal.Utils.isEmpty;
 import static java.util.Objects.isNull;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public class KarateKafkaConsumer implements Runnable {
 
@@ -34,8 +35,8 @@ public class KarateKafkaConsumer implements Runnable {
 
   private BlockingQueue<String> outputList = new LinkedBlockingQueue<>();
 
-  public KarateKafkaConsumer(String kafkaTopic, Map<String, String> map) {
-    this(kafkaTopic, map, null, null);
+  public KarateKafkaConsumer(String kafkaTopic, Map<String, String> consumerProperties) {
+    this(kafkaTopic, consumerProperties, null, null);
   }
 
   public KarateKafkaConsumer(String kafkaTopic) {
@@ -51,15 +52,14 @@ public class KarateKafkaConsumer implements Runnable {
 
   public KarateKafkaConsumer(
       String kafkaTopic,
-      Map<String, String> map,
+      Map<String, String> consumerProperties,
       String keyFilterExpression,
       String valueFilterExpression) {
+
     setKeyValueFilters(keyFilterExpression, valueFilterExpression);
     Properties cp = new Properties();
-    for (String key : map.keySet()) {
-      String value = map.get(key);
-      cp.setProperty(key, value);
-    }
+    consumerProperties.keySet().stream()
+        .forEach(key -> cp.setProperty(key, consumerProperties.get(key)));
     create(kafkaTopic, cp);
   }
 
@@ -110,7 +110,6 @@ public class KarateKafkaConsumer implements Runnable {
         ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
     cp.setProperty(
         ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-
     cp.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "karate-kafka-default-consumer-group");
     return cp;
   }
@@ -163,6 +162,7 @@ public class KarateKafkaConsumer implements Runnable {
             else logger.info("Key : " + key + " Type: " + key.getClass().getName());
             logger.info("Value : " + value + " Type: " + value.getClass().getName());
 
+            // We want to return a String that can be interpreted by Karate as a JSON
             String str = "{key: " + key + ", value: " + value + "}";
             if (!isNull(keyFilter) && !filterByKey(key)) {
               continue;
@@ -179,7 +179,7 @@ public class KarateKafkaConsumer implements Runnable {
       logger.info("Got WakeupException");
       // nothing to do here
     } catch (Exception e) {
-      e.printStackTrace();
+      logger.error("Exception while consuming", e);
     } finally {
       logger.info("consumer is shutting down ...");
       kafka.close();
@@ -220,5 +220,33 @@ public class KarateKafkaConsumer implements Runnable {
   public synchronized String take() throws InterruptedException {
     logger.info("take() called");
     return outputList.take(); // wait if necessary for data to become available
+  }
+
+  /**
+   * @param n The number of records to read
+   * @return The next available kafka record in the Queue (head of the queue). If no record is
+   *     available, then the call is blocked.
+   * @throws InterruptedException - if interrupted while waiting
+   */
+  public synchronized String take(int n) throws InterruptedException {
+    logger.info("take() called");
+    List<String> list = new ArrayList<>();
+    for (int i = 0; i < n; i++) {
+      list.add(outputList.take()); // wait if necessary for data to become available
+    }
+    // We want to return a String that can be interpreted by Karate as a JSON
+    String str = list.toString();
+    return str;
+  }
+
+  /**
+   * @param timeoutMilliSeconds - Time in milliseconds before the data should arrive
+   * @return - The kafka record(Json) as String if available before timeout. Otherwise null
+   * @throws InterruptedException If interrupted while waiting
+   */
+  public synchronized String takeWithTimeout(long timeoutMilliSeconds) throws InterruptedException {
+    logger.info("take(timeoutMilliSeconds) called");
+    return outputList.poll(
+        timeoutMilliSeconds, MILLISECONDS); // wait until timeout for data to become available
   }
 }

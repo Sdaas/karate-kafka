@@ -54,7 +54,7 @@ Add the following to your `pom.xml` :
 <dependency>
     <groupId>com.daasworld</groupId>
     <artifactId>karate-kafka</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.1.0</version>
 </dependency>
 ```
 and
@@ -155,10 +155,20 @@ Creating a consumer with specified properties ...
 # Get the default Properties
 * def props = KafkaConsumer.getDefaultProperties()
 ```
+Create a customer that filters the key and the value. The key filter is a regular
+expression, and the value filter is a [jsonPath](https://github.com/json-path/JsonPath) predicate expression. 
+```cucumber
+* def kc = new KafkaConsumer(topic, consumerProps, "test.*", "[?(@.message =~ /hi.*/)]")
+```
 
 Read a record from the topic. This call will block until data is available  
 ```cucumber  
 * json output = kc.take();
+```
+
+Read multiple records from the topic. This call will block until data is available  
+```cucumber  
+* json output = kc.take(5);
 ```
 
 Terminating the Kafka consumer ...
@@ -263,7 +273,7 @@ To pass in big numbers, first convert them in `java.math.BigDecimal` as describe
 ( work in progress ) for those developing this code
 
 To deploy to github
-* create an oauth2 token ( PErsonal Access Token)  
+* create an oauth2 token ( Personal Access Token)  
     * Settings -> Developer Settings -> Personal Access Token
     * give repo and read:user access
 * mvn deploy
