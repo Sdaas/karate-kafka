@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 
 import static com.jayway.jsonpath.internal.Utils.isEmpty;
 import static java.util.Objects.isNull;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public class KarateKafkaConsumer implements Runnable {
 
@@ -42,7 +43,8 @@ public class KarateKafkaConsumer implements Runnable {
     this(kafkaTopic, null, null);
   }
 
-  public KarateKafkaConsumer( String kafkaTopic, String keyFilterExpression, String valueFilterExpression) {
+  public KarateKafkaConsumer(
+      String kafkaTopic, String keyFilterExpression, String valueFilterExpression) {
     Properties cp = getDefaultProperties();
     setKeyValueFilters(keyFilterExpression, valueFilterExpression);
     create(kafkaTopic, cp);
@@ -56,10 +58,8 @@ public class KarateKafkaConsumer implements Runnable {
 
     setKeyValueFilters(keyFilterExpression, valueFilterExpression);
     Properties cp = new Properties();
-    for (String key : consumerProperties.keySet()) {
-      String value = consumerProperties.get(key);
-      cp.setProperty(key, value);
-    }
+    consumerProperties.keySet().stream()
+        .forEach(key -> cp.setProperty(key, consumerProperties.get(key)));
     create(kafkaTopic, cp);
   }
 
@@ -106,8 +106,10 @@ public class KarateKafkaConsumer implements Runnable {
     Properties cp = new Properties();
     cp.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
 
-    cp.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-    cp.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+    cp.setProperty(
+        ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+    cp.setProperty(
+        ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
     cp.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "karate-kafka-default-consumer-group");
     return cp;
   }
@@ -177,7 +179,7 @@ public class KarateKafkaConsumer implements Runnable {
       logger.info("Got WakeupException");
       // nothing to do here
     } catch (Exception e) {
-      e.printStackTrace();
+      logger.error("Exception while consuming", e);
     } finally {
       logger.info("consumer is shutting down ...");
       kafka.close();
@@ -221,7 +223,7 @@ public class KarateKafkaConsumer implements Runnable {
   }
 
   /**
-   * @param n  The number of records to read
+   * @param n The number of records to read
    * @return The next available kafka record in the Queue (head of the queue). If no record is
    *     available, then the call is blocked.
    * @throws InterruptedException - if interrupted while waiting
@@ -229,11 +231,22 @@ public class KarateKafkaConsumer implements Runnable {
   public synchronized String take(int n) throws InterruptedException {
     logger.info("take() called");
     List<String> list = new ArrayList<>();
-    for(int i=0; i<n; i++){
+    for (int i = 0; i < n; i++) {
       list.add(outputList.take()); // wait if necessary for data to become available
     }
     // We want to return a String that can be interpreted by Karate as a JSON
     String str = list.toString();
     return str;
+  }
+
+  /**
+   * @param timeoutMilliSeconds - Time in milliseconds before the data should arrive
+   * @return - The kafka record(Json) as String if available before timeout. Otherwise null
+   * @throws InterruptedException If interrupted while waiting
+   */
+  public synchronized String takeWithTimeout(long timeoutMilliSeconds) throws InterruptedException {
+    logger.info("take(timeoutMilliSeconds) called");
+    return outputList.poll(
+        timeoutMilliSeconds, MILLISECONDS); // wait until timeout for data to become available
   }
 }
