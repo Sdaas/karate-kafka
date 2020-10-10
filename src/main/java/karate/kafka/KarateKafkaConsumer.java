@@ -76,13 +76,13 @@ public class KarateKafkaConsumer implements Runnable {
     // And we will wait until topics have been assigned to this consumer
     // Once topics have been assigned to this consumer, the latch is set. Until then we wait ...
     // and wait ... and wait ...
-    logger.info("Waiting for consumer to be ready..");
+    logger.debug("Waiting for consumer to be ready..");
     try {
       startupLatch.await();
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
-    logger.info("consumer is ready");
+    logger.debug("consumer is ready");
   }
 
   /**
@@ -113,7 +113,7 @@ public class KarateKafkaConsumer implements Runnable {
   }
 
   public void close() {
-    logger.info("asking consumer to shutdown ...");
+    logger.debug("asking consumer to shutdown ...");
     kafka.wakeup();
     try {
       shutdownLatch.await();
@@ -125,11 +125,11 @@ public class KarateKafkaConsumer implements Runnable {
   public void signalWhenReady() {
 
     if (!partitionsAssigned) {
-      logger.info("checking partition assignment");
+      logger.debug("checking partition assignment");
       Set<TopicPartition> partitions = kafka.assignment();
       if (partitions.size() > 0) {
         partitionsAssigned = true;
-        logger.info("partitions assigned to consumer ...");
+        logger.debug("partitions assigned to consumer ...");
         startupLatch.countDown();
       }
     }
@@ -150,15 +150,15 @@ public class KarateKafkaConsumer implements Runnable {
         signalWhenReady();
         if (records != null) {
           for (ConsumerRecord record : records) {
-            logger.info("*** Consumer got data ****");
+            logger.debug("*** Consumer got data ****");
 
             Object key = record.key();
             Object value = record.value();
 
-            logger.info("Partition : " + record.partition() + " Offset : " + record.offset());
-            if (key == null) logger.info("Key : null");
-            else logger.info("Key : " + key + " Type: " + key.getClass().getName());
-            logger.info("Value : " + value + " Type: " + value.getClass().getName());
+            logger.debug("Partition : " + record.partition() + " Offset : " + record.offset());
+            if (key == null) logger.debug("Key : null");
+            else logger.debug("Key : " + key + " Type: " + key.getClass().getName());
+            logger.debug("Value : " + value + " Type: " + value.getClass().getName());
 
             // We want to return a String that can be interpreted by Karate as a JSON
             String str = "{key: " + key + ", value: " + value + "}";
@@ -168,20 +168,20 @@ public class KarateKafkaConsumer implements Runnable {
             if (!isNull(valueFilter) && !filterByValue(value)) {
               continue;
             }
-            logger.info("Consuming record. key: " + key + ", value: " + value);
+            logger.debug("Consuming record. key: " + key + ", value: " + value);
             outputList.put(str);
           }
         }
       }
     } catch (WakeupException e) {
-      logger.info("Got WakeupException");
+      logger.debug("Got WakeupException");
       // nothing to do here
     } catch (Exception e) {
       e.printStackTrace();
     } finally {
-      logger.info("consumer is shutting down ...");
+      logger.debug("consumer is shutting down ...");
       kafka.close();
-      logger.info("consumer is now shut down.");
+      logger.debug("consumer is now shut down.");
       shutdownLatch.countDown();
     }
   }
@@ -216,7 +216,7 @@ public class KarateKafkaConsumer implements Runnable {
    * @throws InterruptedException - if interrupted while waiting
    */
   public synchronized String take() throws InterruptedException {
-    logger.info("take() called");
+    logger.debug("take() called");
     return outputList.take(); // wait if necessary for data to become available
   }
 
@@ -227,7 +227,7 @@ public class KarateKafkaConsumer implements Runnable {
    * @throws InterruptedException - if interrupted while waiting
    */
   public synchronized String take(int n) throws InterruptedException {
-    logger.info("take() called");
+    logger.debug("take() called");
     List<String> list = new ArrayList<>();
     for(int i=0; i<n; i++){
       list.add(outputList.take()); // wait if necessary for data to become available

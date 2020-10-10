@@ -58,8 +58,8 @@ public class KarateKafkaProducer {
                         handler.accept(e.getMessage());
                 } else {
                     // the data was successfully sent
-                    logger.info("Successfully sent message");
-                    logger.info("topic: " + recordMetadata.topic() + " partition: " + recordMetadata.partition() + " offset: " + recordMetadata.offset());
+                    logger.debug("Successfully sent message");
+                    logger.debug("topic: " + recordMetadata.topic() + " partition: " + recordMetadata.partition() + " offset: " + recordMetadata.offset());
 
                     if( handler != null ) {
                         HashMap<String, String> map = new HashMap<>();
@@ -79,7 +79,7 @@ public class KarateKafkaProducer {
     }
 
     public void close() {
-        logger.info("producer is shutting down ...");
+        logger.debug("producer is shutting down ...");
         kafka.close();
     }
 
