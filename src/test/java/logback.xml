@@ -15,6 +15,9 @@
     </appender>
 
     <logger name="com.intuit.karate" level="INFO"/>
+    <logger name="karate.kafka" level="INFO"/>
+    <logger name="org.apache.kafka" level="WARN"/>
+
 
     <root level="info">
         <appender-ref ref="STDOUT" />
