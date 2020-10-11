@@ -1,4 +1,4 @@
-Feature: Hello Java
+Feature: Karate Java interop demo
 
   # Calling Java code from Karate
 
