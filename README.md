@@ -285,8 +285,14 @@ To deploy to github
     * give repo and read:user access
 * mvn deploy
 
+* Run all tests (including coverage) from command line
+mvn test -Dtest=KarateTests
+* Coverage results are at 
+target/site/jacoco/karate.kafka/index.html
+
 ### References
 
+* [Kafkacat](https://github.com/edenhill/kafkacat)
 * [Running Kafka inside Docker](https://github.com/wurstmeister/kafka-docker)
 * [Markdown syntax](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)
 * [Java-Javascript Interop Issues in Nashorn](https://github.com/EclairJS/eclairjs-nashorn/wiki/Nashorn-Java-to-JavaScript-interoperability-issues)
