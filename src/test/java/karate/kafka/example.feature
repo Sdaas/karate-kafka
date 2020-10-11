@@ -17,7 +17,7 @@ Feature: Karate-Kafka Demo
   Scenario: Get the default properties for Consumer
 
     * def props = KafkaConsumer.getDefaultProperties()
-    * print props contains { "bootstrap.servers": "127.0.0.1:9092" }
+    * match props contains { "bootstrap.servers": "127.0.0.1:9092" }
 
   Scenario: Print the default properties for producer
 
@@ -45,14 +45,30 @@ Feature: Karate-Kafka Demo
     # you will not be able to close the consumer
     * kc.close()
 
-    # Print it - the most advanced form of debugging
-    #* print output1
-    #* print output2
-
     # Doing the match
     # See https://intuit.github.io/karate/#karate-expressions
     * match output1 == { key : '#null', value : 'hello world' }
     * match output2 == { key : 'the_key', value : 'hello again' }
+
+  Scenario: Using Long data type in the Value
+
+    # Create producer with long serializer
+    * def producerProps = KafkaProducer.getDefaultProperties()
+    * producerProps["value.serializer"] = "org.apache.kafka.common.serialization.LongSerializer"
+    * def kp = new KafkaProducer(producerProps)
+    # Create consumer with long deserializer
+    * def consumerProps = KafkaConsumer.getDefaultProperties()
+    * consumerProps["value.deserializer"] = "org.apache.kafka.common.serialization.LongDeserializer"
+    * def kc = new KafkaConsumer(topic,consumerProps)
+    # Note you need to promote 12345 into an Object first ...
+    * def value = new java.lang.Long(12345)
+    * kp.send(topic, "message_key", value)
+    * json out = kc.take()
+    * kc.close()
+    * kp.close()
+    # Do the matching
+    * match out == { key : '#notnull', value : 12345 }
+    * match out.value == 12345
 
   Scenario: Read a list of messages from the test-topic
 
@@ -71,9 +87,6 @@ Feature: Karate-Kafka Demo
     # you will not be able to close the consumer
     * kc.close()
 
-    # Print it - the most advanced form of debugging
-    #* print output
-
     # Doing the match
     * match output contains { key : #null, value : 'hello' }
     * match output contains { key : #notnull, value : 'world' }
@@ -81,7 +94,7 @@ Feature: Karate-Kafka Demo
   Scenario: Reading from test-topic with timeout
 
     * def kc = new KafkaConsumer(topic)
-    * def raw = kc.poll(2000)
+    * def raw = kc.poll(1000)
     * kc.close()
     * match raw == null
 
@@ -93,11 +106,27 @@ Feature: Karate-Kafka Demo
     # Create a producer
     * def producerDefaults = KafkaProducer.getDefaultProperties()
     * def kp = new KafkaProducer(producerDefaults)
-    * kp.send(topic, "the_key", "hello again")
+    * kp.send(topic, "the_message_key", "the_message_value")
     * json output = kc.take()
 
     # Remember to close the producer and consumer
     * kp.close()
     * kc.close()
+    * match output == { key : 'the_message_key', value : 'the_message_value' }
 
-    * match output == { key : 'the_key', value : 'hello again' }
+  Scenario: Kafka producer and consumer with headers
+
+    * def kc = new KafkaConsumer(topic)
+    * def kp = new KafkaProducer()
+    * def headers = { x-header-one : "header-one-value", x-header-two : "header-two-value" }
+    * kp.send(topic, "message_key", "message_payload", headers)
+    * json out = kc.take()
+    * print out
+    * kc.close()
+    * kp.close()
+    * match out.headers contains { "x-header-one": "header-one-value" }
+    * match out.headers contains { "x-header-two": "header-two-value" }
+    * match out.key == "message_key"
+    * match out.value == "message_payload"
+
+

@@ -1,6 +1,8 @@
 package karate.kafka;
 
 import org.apache.kafka.clients.producer.*;
+import org.apache.kafka.common.header.Headers;
+import org.apache.kafka.common.header.internals.RecordHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,12 +42,25 @@ public class KarateKafkaProducer {
     }
 
     public void send(String topic, Object key, Object value) {
-        send(topic, key, value, null );
+        send(topic, key, value, null, null );
     }
 
-    public void send(String topic, Object key, Object value, java.util.function.Consumer<String> handler) {
+    // key and value can anything - int, long, string, json (Map<String,Object>)
+    // but the headers must be properties. Currently we support only String in the header ( not long/int etc )
+    public void send(String topic, Object key, Object value, Map<String,String> headers) {
+        send(topic, key, value, headers, null );
+    }
 
-        ProducerRecord<Object, Object> record = new ProducerRecord<>(topic, key, value);
+    public void send(String topic, Object recordKey, Object value, Map<String,String> headers, java.util.function.Consumer<String> handler) {
+
+        ProducerRecord<Object, Object> record = new ProducerRecord<>(topic, recordKey, value);
+        if( headers != null ) {
+            Headers recordHeaders = record.headers();
+            for(String headerKey : headers.keySet()) {
+                byte[] headerValue = headers.get(headerKey).getBytes();
+                recordHeaders.add( new RecordHeader(headerKey,headerValue));
+            }
+        }
         kafka.send(record, new Callback() {
 
             @Override

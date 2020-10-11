@@ -1,5 +1,7 @@
 package karate.kafka;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.JsonPathException;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -8,6 +10,8 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
+import org.apache.kafka.common.header.Header;
+import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -155,6 +159,7 @@ public class KarateKafkaConsumer implements Runnable {
 
             Object key = record.key();
             Object value = record.value();
+            Headers recordHeaders = record.headers();
 
             logger.debug("Partition : " + record.partition() + " Offset : " + record.offset());
             if (key == null) logger.debug("Key : null");
@@ -162,7 +167,8 @@ public class KarateKafkaConsumer implements Runnable {
             logger.debug("Value : " + value + " Type: " + value.getClass().getName());
 
             // We want to return a String that can be interpreted by Karate as a JSON
-            String str = "{key: " + key + ", value: " + value + "}";
+            String str = convertToJsonString(key, value, recordHeaders);
+
             if (!isNull(keyFilter) && !filterByKey(key)) {
               continue;
             }
@@ -184,6 +190,32 @@ public class KarateKafkaConsumer implements Runnable {
       kafka.close();
       logger.debug("consumer is now shut down.");
       shutdownLatch.countDown();
+    }
+  }
+
+  private String convertToJsonString(Object key, Object value, Headers recordHeaders){
+    ObjectMapper objectMapper = new ObjectMapper();
+    Map<String,String> map = new HashMap<>();
+    for(Header h : recordHeaders) {
+      String headerKey = h.key();
+      String headerValue = new String(h.value());
+      map.put(headerKey,headerValue);
+    }
+
+    if( map.size() == 0 ) {
+      // There were no headers
+      return  "{key: " + key + ", value: " + value + "}";
+    }
+    else {
+      // headers are present ...
+      String headers;
+      try {
+        headers = objectMapper.writeValueAsString(map);
+      } catch (JsonProcessingException e) {
+        headers =  "error";
+        logger.error("Unable to parse header");
+      }
+      return "{key: " + key + ", value: " + value + ", headers: " + headers + "}";
     }
   }
 

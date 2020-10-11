@@ -9,30 +9,43 @@ This project provides a library to test Kafka applications using KarateDSL. It p
 a `KafkaConsumer` that can be called from a Karate feature. An example :
 
 ```cucumber
-Feature: Karate-Kafka Demo
+Feature: Kafka Producer and Consumer Demo
 
   Background:
-
-    * def KafkaConsumer = Java.type('karate.kafka.KarateKafkaConsumer')
     * def KafkaProducer = Java.type('karate.kafka.KarateKafkaProducer')
+    * def KafkaConsumer = Java.type('karate.kafka.KarateKafkaConsumer')
     * def topic = 'test-topic'
 
-  Scenario: Write strings to test-topic and read it back
+  Scenario: Write messages to test-topic and read it back
 
-    * def kc = new KafkaConsumer(topic)
     * def kp = new KafkaProducer()
-    * kp.send(topic, "hello world")
-    * kp.send(topic, "the_key", "hello again")
+    * def props = KafkaConsumer.getDefaultProperties()
+    * def kc = new KafkaConsumer(topic,props)
+    * def key = "message_key"
+    * def value =
+    """
+    {
+      person : {
+          firstName : "Santa",
+          lastName : "Claus"
+          },
+      location : "North Pole"
+    }
+    """
+    * def headers = { x-header-one : "header-one-value", x-header-two : "header-two-value" }
+    * kp.send(topic, key, value,headers);
 
-    * json output1 = kc.take()
-    * json output2 = kc.take()
+    # Read from the consumer
+    * json out = kc.take()
 
     * kp.close()
     * kc.close()
 
-    # Doing the match
-    * match output1 == { key : '#null', value : 'hello world' }
-    * match output2 == { key : 'the_key', value : 'hello again' }
+    # Match
+    * match out.key == "message_key"
+    * match out.value.person.firstName == 'Santa'
+    * match out.headers contains { "x-header-one": "header-one-value" }
+    * match out.headers contains { "x-header-two": "header-two-value" }
 ```
 ## Quick Demo
 
@@ -70,14 +83,14 @@ and
 ### Kafka Producer
 
 Creating a Kafka producer with the default properties ...
-
 ```cucumber
-# Create Kafka Producer with the default properties
 * def kp = new KafkaProducer()
 ```
-
+Get the default KafkaProducer properties
+```cucumber
+* def props = KafkaProducer.getDefaultProperties()
+```
 The following default properties are used to create the producer. 
-
 ```
 {
   "bootstrap.servers": "127.0.0.1:9092",
@@ -91,27 +104,28 @@ The following default properties are used to create the producer.
   "acks": "all"
 }
 ```
-
 The `karate.kafka.MyGenericSerializer` tries
 to automatically guess the key/value type and attempts to serialize it as `Integer`, `Long`, `String`, or `JSON` 
 based on the input. These default properties should work most of the time for testing, but you can always
 override them ...
 
+Overriding the default Properties
 ```cucumber
-# Create Kafka Producer with the specified properties
 * def prop = { ... } 
 * def kp = new KafkaProducer(prop)
 
-# Get the default Properties
-* def props = KafkaProducer.getDefaultProperties()
-```
 
+```
 Producing a message with or without a key
 ```cucumber
 * kp.send(topic, "hello world")
 * kp.send(topic, "the key", "hello again")
 ```
-
+Producing a Message with headers. Header key and values must be strings. 
+```cucumber
+* def headers = { x-header-one : "header-one-value", x-header-two : "header-two-value" }
+* kp.send(topic, "message_key", "message_payload", headers)
+```
 Producing a JSON message 
 ```cucumber
 * def key = { ... }
@@ -165,7 +179,12 @@ Read a record from the topic. This call will block until data is available.
 ```cucumber  
 * json output = kc.take();
 ```
-
+After reading, the `output` will contain
+* `key`: Is always present. If producer did not specify a key, then this will be `null`.
+* `value`: The message value.
+* `headers`: Kafka message headers. Present only if the message had headers.
+ 
+        
 Read a record from the topic waiting upto the specified amount of time (in milliseconds). If the data is not available
 by that time, it will return null. This can be used (for example) to check that no records were written to a topic
 ```cucumber  
