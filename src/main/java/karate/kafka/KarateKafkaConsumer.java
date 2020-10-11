@@ -17,6 +17,7 @@ import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import static com.jayway.jsonpath.internal.Utils.isEmpty;
@@ -137,7 +138,7 @@ public class KarateKafkaConsumer implements Runnable {
 
   public void run() {
 
-    // Until you call poll(), the consumer is just idling.
+    // Until consumer.poll() is caled, the consumer is just idling.
     // Only after poll() is invoked, it will initiate a connection to the cluster, get assigned
     // partitions and attempt to fetch messages.
     // So we will call poll() and then wait for some time until the partition is assigned.
@@ -227,7 +228,7 @@ public class KarateKafkaConsumer implements Runnable {
    * @throws InterruptedException - if interrupted while waiting
    */
   public synchronized String take(int n) throws InterruptedException {
-    logger.debug("take() called");
+    logger.debug("take(n) called");
     List<String> list = new ArrayList<>();
     for(int i=0; i<n; i++){
       list.add(outputList.take()); // wait if necessary for data to become available
@@ -236,4 +237,16 @@ public class KarateKafkaConsumer implements Runnable {
     String str = list.toString();
     return str;
   }
+
+  /**
+   * @param timeout  maximum time in milliseconds to wait for a record
+   * @return The next available kafka record in the Queue (head of the queue). If no record is
+   *     available for timeout milliseconds, then return null
+   * @throws InterruptedException - if interrupted while waiting
+   */
+  public synchronized String poll(long timeout) throws InterruptedException {
+    logger.debug("poll() called");
+    return outputList.poll(timeout, TimeUnit.MILLISECONDS);
+  }
+
 }

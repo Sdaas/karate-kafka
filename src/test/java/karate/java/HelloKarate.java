@@ -41,4 +41,6 @@ public class HelloKarate {
     public BigDecimal echoBigDecimal( BigDecimal big){
         return big;
     }
+
+    public String nullString() { return null;}
 }

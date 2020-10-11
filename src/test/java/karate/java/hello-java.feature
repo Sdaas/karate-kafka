@@ -42,3 +42,8 @@ Feature: Hello Java
     * def param = new java.math.BigDecimal(123456789012345567890)
     * def out = hk.echoBigDecimal(param)
     * match out == param
+
+  Scenario: Method returns null
+
+    * def out = hk.nullString();
+    * match out == null

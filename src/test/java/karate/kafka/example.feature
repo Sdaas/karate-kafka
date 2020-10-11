@@ -46,8 +46,8 @@ Feature: Karate-Kafka Demo
     * kc.close()
 
     # Print it - the most advanced form of debugging
-    * print output1
-    * print output2
+    #* print output1
+    #* print output2
 
     # Doing the match
     # See https://intuit.github.io/karate/#karate-expressions
@@ -72,8 +72,15 @@ Feature: Karate-Kafka Demo
     * kc.close()
 
     # Print it - the most advanced form of debugging
-    * print output
+    #* print output
 
     # Doing the match
     * match output contains { key : #null, value : 'hello' }
     * match output contains { key : #notnull, value : 'world' }
+
+  Scenario: Reading from test-topic with timeout
+
+    * def kc = new KafkaConsumer(topic)
+    * def raw = kc.poll(5000)
+    * kc.close()
+    * match raw == null

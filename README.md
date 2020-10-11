@@ -1,6 +1,6 @@
 
 [![Build Status](https://api.travis-ci.com/Sdaas/karate-kafka.svg?branch=master)](https://travis-ci.com/Sdaas/karate-kafka)
- 
+
 ## Introduction
 
 Work In Progress
@@ -161,12 +161,19 @@ expression, and the value filter is a [jsonPath](https://github.com/json-path/Js
 * def kc = new KafkaConsumer(topic, consumerProps, "test.*", "[?(@.message =~ /hi.*/)]")
 ```
 
-Read a record from the topic. This call will block until data is available  
+Read a record from the topic. This call will block until data is available.
 ```cucumber  
 * json output = kc.take();
 ```
 
-Read multiple records from the topic. This call will block until data is available  
+Read a record from the topic waiting upto the specified amount of time (in milliseconds). If the data is not available
+by that time, it will return null. This can be used (for example) to check that no records were written to a topic
+```cucumber  
+* def raw = kc.poll(3000);
+* match raw == null
+```
+
+Read multiple records from the topic. This call will block until data is available.  
 ```cucumber  
 * json output = kc.take(5);
 ```
