@@ -14,15 +14,15 @@ Feature: Karate-Kafka Demo
     * def KafkaProducer = Java.type('karate.kafka.KarateKafkaProducer')
     * def topic = 'test-topic'
 
-  Scenario: Print the default properties for consumer
+  Scenario: Get the default properties for Consumer
 
     * def props = KafkaConsumer.getDefaultProperties()
-    * print props
+    * print props contains { "bootstrap.servers": "127.0.0.1:9092" }
 
   Scenario: Print the default properties for producer
 
     * def props = KafkaProducer.getDefaultProperties()
-    * print props
+    * match props contains { "bootstrap.servers": "127.0.0.1:9092" }
 
   Scenario: Write strings to test-topic and read it back
 
@@ -81,6 +81,23 @@ Feature: Karate-Kafka Demo
   Scenario: Reading from test-topic with timeout
 
     * def kc = new KafkaConsumer(topic)
-    * def raw = kc.poll(5000)
+    * def raw = kc.poll(2000)
     * kc.close()
     * match raw == null
+
+  Scenario: Kafka producer and consumer with properties
+
+    # Create a consumer.
+    * def consumerDefaults = KafkaConsumer.getDefaultProperties()
+    * def kc = new KafkaConsumer(topic, consumerDefaults)
+    # Create a producer
+    * def producerDefaults = KafkaProducer.getDefaultProperties()
+    * def kp = new KafkaProducer(producerDefaults)
+    * kp.send(topic, "the_key", "hello again")
+    * json output = kc.take()
+
+    # Remember to close the producer and consumer
+    * kp.close()
+    * kc.close()
+
+    * match output == { key : 'the_key', value : 'hello again' }

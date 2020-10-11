@@ -25,10 +25,10 @@ public class KarateKafkaProducer {
         kafka = new KafkaProducer<>(pp);
     }
 
-    public KarateKafkaProducer(Map<String,Object> map) {
+    public KarateKafkaProducer(Map<String,String> map) {
         Properties pp = new Properties();
         for( String key : map.keySet()){
-            String value = (String) map.get(key);
+            String value = map.get(key);
             pp.setProperty(key,value);
         }
         createKafkaProducer(pp);
