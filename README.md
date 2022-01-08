@@ -226,6 +226,16 @@ On the consumer side, you need to specify a deserializer for the key / value the
 
 On the Producer Side, you should never have to configure a serializer either for the key or data
 
+### Karate standalone
+
+If you want to use a standalone Kafka Jar please use this:
+
+```shell
+mvn -Pfatjar clean install
+```
+
+There is an example on how to use this in the [example karate standalone](examples/karate-standalone-with-kafka-schema-registry)
+
 ## Managing the local Kafka broker
 
 The configuration for Kafka and Zookeeper is specified in `kafka-single-broker.yml`. See
