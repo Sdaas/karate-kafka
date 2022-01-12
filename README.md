@@ -234,7 +234,7 @@ If you want to use a standalone Kafka Jar please use this:
 mvn -Pfatjar clean install
 ```
 
-There is an example on how to use this in the [example karate standalone](examples/karate-standalone-with-kafka-schema-registry)
+There is an example on how to use this in the [example karate standalone](examples/karate_standalone_with_kafka_schema_registry)
 
 ## Managing the local Kafka broker
 
