@@ -1,0 +1,18 @@
+{
+  "type": "record",
+  "namespace": "com.qindel.karate_kafka",
+  "name": "MessageStatusKey",
+  "doc": "Indicates the identifier of the message based on campaign_id and email.",
+  "fields": [
+    {
+      "name": "campaign_id",
+      "type": "string",
+      "doc": "Is the campaign id returned when the campaign is launched"
+    },
+    {
+      "name": "destination_address",
+      "type": "string",
+      "doc": "Is the destination address of the message, that is, the destination email for email"
+    }
+  ]
+}

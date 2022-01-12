@@ -1,0 +1,37 @@
+{
+  "type": "record",
+  "namespace": "com.qindel.karate_kafka",
+  "name": "MessageStatusValue",
+  "doc": "Indicates status of the message. Whether it is queued, sent, or has been delivered",
+  "fields": [
+    {
+      "name": "status",
+      "type": {
+        "type": "enum",
+        "name": "status",
+        "symbols": [
+          "other",
+          "queued",
+          "sent",
+          "delivered",
+          "error"
+        ],
+        "default": "other"
+      },
+      "doc": "The different status where the message can be: 'queued': the message is in the output queue. 'sent': the message has been sent, 'delivered': the message has reached the end user device. 'error': the message will not be sent, more information about the error will be in the description field, 'revoked': The message was not be possible to be delivered once sent for a period of time and has been removed of the system, in case of rcs, if sms fallback was configured, the next status might be 'queued' and the channel might change from 'rcs' to 'sms' and start again via 'queued', 'sent', 'delivered'... 'other' is mainly used for schema evolution for new statuses that might be defined in the future. If you get 'other' the most likely case is that there is a new version of the schema"
+    },
+    {
+      "name": "status_ts",
+      "type": "long",
+      "logicalType": "timestamp-millis",
+      "default": 0,
+      "doc": "Is the timestamp when the status was changed. Number of milliseconds from the unix epoch, 1 January 1970 00:00:00.000 UTC"
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "default": "",
+      "doc": "Is extra information about the status. It might indicate the reason of an error, or the list that filtered the message"
+    }
+  ]
+}
