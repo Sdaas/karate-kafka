@@ -301,7 +301,7 @@ To pass in big numbers, first convert them in `java.math.BigDecimal` as describe
 To deploy to github
 * create an oauth2 token ( Personal Access Token)  
     * Settings -> Developer Settings -> Personal Access Token
-    * give repo and read:user access
+    * give repo:*, read:user, and user:email  access
 * mvn deploy
 
 * Run all tests (including coverage) from command line
