@@ -6,5 +6,5 @@ docker ps
 echo "*** sleeping for 15 seconds (give time for containers to spin up)"
 sleep 15
 echo "*** the following topic were created ...."
-kafkacat -L -b localhost:9092
+kcat -L -b localhost:9092
 #kafka-topics -zookeeper 127.0.0.1:2181 --list

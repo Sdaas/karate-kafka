@@ -50,6 +50,27 @@ Feature: Karate-Kafka Demo
     * match output1 == { key : '#null', value : 'hello world' }
     * match output2 == { key : 'the_key', value : 'hello again' }
 
+
+  Scenario: Using Integer data type in the Value
+
+    # Create producer with integer serializer
+    * def producerProps = KafkaProducer.getDefaultProperties()
+    * producerProps["value.serializer"] = "org.apache.kafka.common.serialization.IntegerSerializer"
+    * def kp = new KafkaProducer(producerProps)
+    # Create consumer with long deserializer
+    * def consumerProps = KafkaConsumer.getDefaultProperties()
+    * consumerProps["value.deserializer"] = "org.apache.kafka.common.serialization.IntegerDeserializer"
+    * def kc = new KafkaConsumer(topic,consumerProps)
+    # * def value = new java.lang.Integer(12345) OR simply
+    * def value = 12345
+    * kp.send(topic, "message_key", value)
+    * json out = kc.take()
+    * kc.close()
+    * kp.close()
+    # Do the matching
+    * match out == { key : '#notnull', value : 12345 }
+    * match out.value == 12345
+
   Scenario: Using Long data type in the Value
 
     # Create producer with long serializer

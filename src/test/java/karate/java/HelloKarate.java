@@ -24,7 +24,7 @@ public class HelloKarate {
 
         for(int i=1; i<4; i++) {
             HashMap<String,String> map = new HashMap<>();
-            map.put("value", new Integer(i*10).toString());
+            map.put("value", Integer.toString(i*10));
             list.add(map);
         }
         return list;

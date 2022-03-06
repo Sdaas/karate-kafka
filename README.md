@@ -316,4 +316,4 @@ target/site/jacoco/karate.kafka/index.html
 * [Markdown syntax](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)
 * [Java-Javascript Interop Issues in Nashorn](https://github.com/EclairJS/eclairjs-nashorn/wiki/Nashorn-Java-to-JavaScript-interoperability-issues)
 * [Hosting a maven repository on github](https://dev.to/iamthecarisma/hosting-a-maven-repository-on-github-site-maven-plugin-9ch)
-
+* [Upgrading to Karate 1.0.0](https://github.com/karatelabs/karate/wiki/1.0-upgrade-guide)
