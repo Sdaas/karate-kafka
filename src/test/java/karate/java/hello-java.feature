@@ -25,8 +25,7 @@ Feature: Karate Java interop demo
 
   Scenario: Passing an number
 
-    # Karate uses Nashorn to convert Javascript numbers to Java integer. Due to the way
-    # Nashorn works, the largest number that can be safely converted to Integer or Long is
+    # The largest number that can be safely converted to Integer or Long is
     # 2147483647
 
     * def param = 2147483647

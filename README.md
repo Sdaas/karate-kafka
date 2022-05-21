@@ -5,8 +5,8 @@
 
 Work In Progress
 
-This project provides a library to test Kafka applications using KarateDSL. It provides a `KafkaProducer` and
-a `KafkaConsumer` that can be called from a Karate feature. An example :
+This project provides a library to test Kafka applications using [KarateDSL](https://github.com/karatelabs/karate). 
+It provides a `KafkaProducer` and `KafkaConsumer` that can be called from a Karate feature. An example :
 
 ```cucumber
 Feature: Kafka Producer and Consumer Demo
@@ -49,14 +49,15 @@ Feature: Kafka Producer and Consumer Demo
 ```
 ## Quick Demo
 
-Start up a single-node Kafka cluster locally with a topic called `test-topic`. Running
-`KarateTests` will invoke `src/test/java/karate/kafka/example.feature` which will attempt to
-write a few messages to this topic and read it back. Finally, shut down the Kafka cluster.
+Start up a single-node Kafka cluster locally. Running `KarateTests` will invoke
+`src/test/java/karate/kafka/example.feature` which will attempt to
+write a few messages to `test-topic` and read it back. Finally, shut down
+the Kafka cluster.
 
 ```
-$ ./startup.sh   
+$ docker-compose up -d 
 $ mvn test -Dtest=KafkaRunner  
-$ ./teardown.sh  
+$ docker-compose down  
 ```
 
 ## Documentation
@@ -67,7 +68,7 @@ Add the following to your `pom.xml` :
 <dependency>
     <groupId>com.daasworld</groupId>
     <artifactId>karate-kafka</artifactId>
-    <version>0.1.2</version>
+    <version>0.2.0</version>
 </dependency>
 ```
 and
@@ -104,8 +105,8 @@ The following default properties are used to create the producer.
   "acks": "all"
 }
 ```
-The `karate.kafka.MyGenericSerializer` tries
-to automatically guess the key/value type and attempts to serialize it as `Integer`, `Long`, `String`, or `JSON` 
+The `karate.kafka.MyGenericSerializer` tries  to automatically guess the key/value type and attempts 
+to serialize it as `Integer`, `Long`, `String`, or `JSON` 
 based on the input. These default properties should work most of the time for testing, but you can always
 override them ...
 
@@ -208,7 +209,7 @@ By default, Karate runs all the features ( and the scenarios in each feature) in
 and writing from Kafka can lead to interleaving of results from different test cases. For this, it is best to run all the features
 and scenario in a single thread. To do this, the following changes are needed:
 
-* Add `@parallel=false` at the top of each feature file. This will ensure that the scenarios are run serially. BTW, Kafka does NOT 
+* Add `@parallel=false` at the top of each feature file. This will ensure that the scenarios are run serially. BTW, Karate does NOT 
 guarantee that the scenarios will be executed in the same order that they appear in the feature file
 
 * Set the number of threads to 1 in the `xxxRunner.java` file. e.g., `Runner.path(...).parallel(1);
@@ -231,42 +232,11 @@ On the Producer Side, you should never have to configure a serializer either for
 The configuration for Kafka and Zookeeper is specified in `kafka-single-broker.yml`. See
 [Wurstmeister's Github wiki](https://github.com/wurstmeister/kafka-docker) on how to configure this.
 
-### Setting up the Kafka Cluster
-
-From the command line, run 
-
-```
-$ ./startup.sh
-Starting karate-kafka_zookeeper_1 ... done
-Starting karate-kafka_kafka_1     ... done
-CONTAINER ID        IMAGE                    NAMES
-ce9b01556d15        wurstmeister/zookeeper   karate-kafka_zookeeper_1
-33685067cb82        wurstmeister/kafka       karate-kafka_kafka_1
-*** sleeping for 10 seconds (give time for containers to spin up)
-*** the following topic were created ....
-test-topic
-```
-
-To smoke test this, we will setup a consumer that will echo whatever the producer writes. In
-one terminal start off a consumer by running `./consumer.sh`. In another terminal, start off
-a producer by running `./producer.sh`.  Type something into the producer. If all goes well, 
-you should see the consumer echo it back.
-
-From the command-line, run `./teardown.sh` to tear down the cluster. This stops zookeeper
-and all the kafka brokers, and also deletes the containers. This means all the data written
-to the kafka cluster will be lost. During testing, this is good because it
-allows us to start each test from the same known state.
-
 ## Interop between Karate and Java
 
 This section briefly talks about how Karate interoperates with Java ....
 
 ### Numbers
-Karate internally uses Nashorn. Due to the way Nashnorn works, the number conversion
-between Karate DSL and Java can sometimes have issues. The exact conversion rules for 
-Nashorn vary by the JDK version and even the OS See [this](https://github.com/EclairJS/eclairjs-nashorn/wiki/Nashorn-Java-to-JavaScript-interoperability-issues)
-and [this](https://stackoverflow.com/questions/38140399/jdk-1-8-0-92-nashorn-js-engine-indexof-behaviour/38148917#38148917)
-articles for some samples.
 
 The largest number that can be safely converted to Java's integer or long is 
 `2147483647`. For example, referring to the `hello-java.feature` and the accompanying
@@ -286,7 +256,7 @@ The largest number that can be safely converted to Java's integer or long is
 ```
 
 To pass in big numbers, first convert them in `java.math.BigDecimal` as described in the
-[Karate Documentation](https://github.com/intuit/karate#large-numbers)   
+[Karate Documentation](https://github.com/karatelabs/karate#large-numbers)   
 
 ```cucumber
 * def param = new java.math.BigDecimal(123456789012345567890)
@@ -311,9 +281,9 @@ target/site/jacoco/karate.kafka/index.html
 
 ### References
 
+* [Karate](https://github.com/karatelabs/karate)
 * [Kafkacat](https://github.com/edenhill/kafkacat)
 * [Running Kafka inside Docker](https://github.com/wurstmeister/kafka-docker)
 * [Markdown syntax](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)
 * [Java-Javascript Interop Issues in Nashorn](https://github.com/EclairJS/eclairjs-nashorn/wiki/Nashorn-Java-to-JavaScript-interoperability-issues)
 * [Hosting a maven repository on github](https://dev.to/iamthecarisma/hosting-a-maven-repository-on-github-site-maven-plugin-9ch)
-* [Upgrading to Karate 1.0.0](https://github.com/karatelabs/karate/wiki/1.0-upgrade-guide)

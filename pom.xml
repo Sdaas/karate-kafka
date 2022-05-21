@@ -6,16 +6,16 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>karate-kafka</artifactId>
     <groupId>com.daasworld</groupId>
-    <version>${revision}</version>
+    <version>0.3.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <properties>
-        <revision>0.2.0</revision>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <kafka-clients.version>2.4.0</kafka-clients.version>
-        <jackson.version>2.12.1</jackson.version>
-        <karate.version>1.1.0</karate.version>
+        <kafka-clients.version>2.8.1</kafka-clients.version>
+        <jackson.version>2.13.3</jackson.version>
+        <json-path.version>2.7.0</json-path.version>
+        <karate.version>1.2.0</karate.version>
         <junit.version>5.4.0</junit.version>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
         <github.global.server>github</github.global.server>
@@ -63,7 +63,7 @@
         <dependency>
             <groupId>com.jayway.jsonpath</groupId>
             <artifactId>json-path</artifactId>
-            <version>2.4.0</version>
+            <version>${json-path.version}</version>
         </dependency>
 
     </dependencies>
