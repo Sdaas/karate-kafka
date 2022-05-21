@@ -71,26 +71,6 @@ Feature: Karate-Kafka Demo
     * match out == { key : '#notnull', value : 12345 }
     * match out.value == 12345
 
-  Scenario: Using Long data type in the Value
-
-    # Create producer with long serializer
-    * def producerProps = KafkaProducer.getDefaultProperties()
-    * producerProps["value.serializer"] = "org.apache.kafka.common.serialization.LongSerializer"
-    * def kp = new KafkaProducer(producerProps)
-    # Create consumer with long deserializer
-    * def consumerProps = KafkaConsumer.getDefaultProperties()
-    * consumerProps["value.deserializer"] = "org.apache.kafka.common.serialization.LongDeserializer"
-    * def kc = new KafkaConsumer(topic,consumerProps)
-    # Note you need to promote 12345 into an Object first ...
-    * def value = new java.lang.Long(12345)
-    * kp.send(topic, "message_key", value)
-    * json out = kc.take()
-    * kc.close()
-    * kp.close()
-    # Do the matching
-    * match out == { key : '#notnull', value : 12345 }
-    * match out.value == 12345
-
   Scenario: Read a list of messages from the test-topic
 
     * def kc = new KafkaConsumer(topic)
