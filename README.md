@@ -49,14 +49,14 @@ Feature: Kafka Producer and Consumer Demo
 ```
 ## Quick Demo
 
-Start up a single-node Kafka cluster locally. Running `KarateTests` will invoke
+Start up a single-node Kafka cluster locally. Running `karate.KarateTests` will invoke
 `src/test/java/karate/kafka/example.feature` which will attempt to
 write a few messages to `test-topic` and read it back. Finally, shut down
 the Kafka cluster.
 
 ```
 $ docker-compose up -d 
-$ mvn test -Dtest=KafkaRunner  
+$ mvn test
 $ docker-compose down  
 ```
 
@@ -212,25 +212,38 @@ and scenario in a single thread. To do this, the following changes are needed:
 * Add `@parallel=false` at the top of each feature file. This will ensure that the scenarios are run serially. BTW, Karate does NOT 
 guarantee that the scenarios will be executed in the same order that they appear in the feature file
 
-* Set the number of threads to 1 in the `xxxRunner.java` file. e.g., `Runner.path(...).parallel(1);
+* Set the number of threads to 1 the `Runner`. E.g., `Runner.path(...).parallel(1);
+
+Currently `karate.KarateTests.java` has a single method to execute all the test cases
+```java
+@Test
+void testall() {
+    Results results = Runner.path("classpath:karate").parallel(1);
+    assertEquals(0, results.getFailCount(), results.getErrorMessages());
+}
+```
+
+This is ok for automated testing, but does not allow us to run one test at a time. To do that, you should replace that
+with the following which will allow us to run one feature at a time
+```java
+@Karate.Test
+Karate jsonExampleTest() throws InterruptedException {
+    return Karate.run("classpath:karate/json-example.feature");
+}
+```
 
 ### Cheat Sheet for configuring Serializers and Deserializers
 
 On the consumer side, you need to specify a deserializer for the key / value the data type is an integer
 
-| Data Type  | Serializer |
-| ---| ---|
-| Integer | org.apache.kafka.common.serialization.IntegerDeserializer  |
-| Longer | org.apache.kafka.common.serialization.LongDeserializer  |
-| String | auto-configured  |
-| JSON | auto-configured  |
+| Data Type | Serializer                                                |
+|-----------|-----------------------------------------------------------|
+| Integer   | org.apache.kafka.common.serialization.IntegerDeserializer |
+| Longer    | org.apache.kafka.common.serialization.LongDeserializer    |
+| String    | auto-configured                                           |
+| JSON      | auto-configured                                           |
 
 On the Producer Side, you should never have to configure a serializer either for the key or data
-
-## Managing the local Kafka broker
-
-The configuration for Kafka and Zookeeper is specified in `kafka-single-broker.yml`. See
-[Wurstmeister's Github wiki](https://github.com/wurstmeister/kafka-docker) on how to configure this.
 
 ## Interop between Karate and Java
 
@@ -275,7 +288,7 @@ To deploy to github
 * mvn deploy
 
 * Run all tests (including coverage) from command line
-mvn test -Dtest=KarateTests
+mvn test -Dtest=karate.KarateTests
 * Coverage results are at 
 target/site/jacoco/karate.kafka/index.html
 
@@ -283,7 +296,8 @@ target/site/jacoco/karate.kafka/index.html
 
 * [Karate](https://github.com/karatelabs/karate)
 * [Kafkacat](https://github.com/edenhill/kafkacat)
-* [Running Kafka inside Docker](https://github.com/wurstmeister/kafka-docker)
 * [Markdown syntax](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)
 * [Java-Javascript Interop Issues in Nashorn](https://github.com/EclairJS/eclairjs-nashorn/wiki/Nashorn-Java-to-JavaScript-interoperability-issues)
 * [Hosting a maven repository on github](https://dev.to/iamthecarisma/hosting-a-maven-repository-on-github-site-maven-plugin-9ch)
+
+

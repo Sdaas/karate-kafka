@@ -17,6 +17,7 @@
         <json-path.version>2.7.0</json-path.version>
         <karate.version>1.2.0</karate.version>
         <junit.version>5.4.0</junit.version>
+        <testcontainers.version>1.15.3</testcontainers.version>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
         <github.global.server>github</github.global.server>
     </properties>
@@ -66,6 +67,13 @@
             <version>${json-path.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -83,14 +91,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.22.1</version>
-                <configuration>
-                    <excludes>
-                        <exclude>karate/**/*.java</exclude>
-                    </excludes>
-                    <includes>
-                        <include>com/**/*.java</include>
-                    </includes>
-                </configuration>
             </plugin>
 
             <plugin>

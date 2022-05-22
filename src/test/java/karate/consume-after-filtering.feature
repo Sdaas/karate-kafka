@@ -12,7 +12,8 @@ Feature: Karate-Kafka Demo-2
 
   Scenario: Write Jsons to topic and read only the records matching given key and value filters
 
-    * def consumerProps = read('kafka-filtering-consumer-properties.json')
+    * def consumerProps = KafkaConsumer.getDefaultProperties()
+    * consumerProps.group_id = "test-consumer-1"
     * print consumerProps
     # Create a consumer. It starts listening to the topic as soon as it is created.
     # It consumes only the records that meet the key filter and value filter criteria
