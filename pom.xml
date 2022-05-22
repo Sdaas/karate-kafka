@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>karate-kafka</artifactId>
     <groupId>com.daasworld</groupId>
-    <version>0.3.0</version>
+    <version>0.3.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <properties>
