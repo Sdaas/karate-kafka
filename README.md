@@ -1,5 +1,5 @@
 
-[![Build Status](https://api.travis-ci.com/Sdaas/karate-kafka.svg?branch=master)](https://travis-ci.com/Sdaas/karate-kafka)
+[![Java CI with Maven](https://github.com/Sdaas/karate-kafka/actions/workflows/maven.yml/badge.svg)](https://github.com/Sdaas/karate-kafka/actions/workflows/maven.yml)
 
 ## Introduction
 
