@@ -68,7 +68,7 @@ Add the following to your `pom.xml` :
 <dependency>
     <groupId>com.daasworld</groupId>
     <artifactId>karate-kafka</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.2</version>
 </dependency>
 ```
 and
@@ -277,20 +277,56 @@ To pass in big numbers, first convert them in `java.math.BigDecimal` as describe
 * match out == param
 ```
 
-### Developer Instructions
+## Developer Instructions
 
-( work in progress ) for those developing this code
+This repo uses github actions to automatically build the library whenever code is pushed to master branch. 
+See [maven.yml](.github/workflows/maven.yml)
 
-To deploy to github
-* create an oauth2 token ( Personal Access Token)  
-    * Settings -> Developer Settings -> Personal Access Token
-    * give repo:*, read:user, and user:email  access
-* mvn deploy
+The primary challenge is where to publish the maven artifacts. Onboarding to 
+[mavenrepository.com](https://mvnrepository.com/repos/central) is a pain. One would have thought
+that [Github Package Registry](https://docs.github.com/en/packages/learn-github-packages/introduction-to-github-packages) but 
+you would be quite wrong. It turns out that authentication is needed even to download artifacts from the repository (read all 
+about it [here](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry)). So
+we have chosen to deploy all to the `mvn-repo` branch of this repo. See [this article](https://dev.to/iamthecarisma/hosting-a-maven-repository-on-github-site-maven-plugin-9ch)
+on how to host a maven repository inside a github repo. 
 
-* Run all tests (including coverage) from command line
-mvn test -Dtest=karate.KarateTests
-* Coverage results are at 
-target/site/jacoco/karate.kafka/index.html
+### Prerequisites
+
+Create a github token with the following permissions. See github.com -> Settings -> Developer Settings -> Personal Access Token
+
+* Repo : full access
+* Workflow (used by Github actions for CI)
+* Write and read packages 
+* Delete packages
+* Read:user
+* User:email
+
+Make sure that you have a `~/.m2/settings.xml` file configured with a github token. For example
+
+```xml
+<settings>
+  <servers>
+    <server>
+      <id>github</id>
+      <username>sdaas</username>
+      <password>THE GITHUB ACCESS TOKEN </password>
+    </server>
+  </servers>
+</settings>
+```
+
+### Release process
+
+* `mvn test` 
+* `mvn release:prepare -DdryRun=true`
+* `mvn release:clean`
+* `mvn release:prepare`
+* `mvn release:perform`
+* Assuming that we are releasing `A.B.C`
+  * At this point the pom.xml should have been updated to the `next-version-SNAPSHOT` version
+  * There should be an entry for `A.B.C` version of the artifact in the `mvn-repo` branch
+  * There should a github tag called `vA.B.C`
+* We still need to create a Release (and release notes) manually from this tag.
 
 ### References
 
@@ -298,6 +334,6 @@ target/site/jacoco/karate.kafka/index.html
 * [Kafkacat](https://github.com/edenhill/kafkacat)
 * [Markdown syntax](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)
 * [Java-Javascript Interop Issues in Nashorn](https://github.com/EclairJS/eclairjs-nashorn/wiki/Nashorn-Java-to-JavaScript-interoperability-issues)
-* [Hosting a maven repository on github](https://dev.to/iamthecarisma/hosting-a-maven-repository-on-github-site-maven-plugin-9ch)
+* [Maven Release Plugin](https://maven.apache.org/maven-release/maven-release-plugin/index.html)
 
 
