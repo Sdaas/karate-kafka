@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>karate-kafka</artifactId>
     <groupId>com.daasworld</groupId>
-    <version>${revision}</version>
+    <version>0.3.3-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -15,11 +13,24 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <kafka-clients.version>2.8.1</kafka-clients.version>
         <maven.shade.version>3.2.4</maven.shade.version>
-        <jackson.version>2.12.1</jackson.version>
-        <karate.version>1.1.0</karate.version>
+        <jackson.version>2.13.3</jackson.version>
+        <json-path.version>2.7.0</json-path.version>
+        <karate.version>1.2.0</karate.version>
         <junit.version>5.4.0</junit.version>
+        <testcontainers.version>1.15.3</testcontainers.version>
+
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+        <maven-surefire-plugin.version>2.22.1</maven-surefire-plugin.version>
+        <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
+        <maven-deploy-plugin.version>2.8.1</maven-deploy-plugin.version>
+        <site-maven-plugin>0.12</site-maven-plugin>
         <github.global.server>github</github.global.server>
+
+        <!-- used for deploying the packages to github -->
+        <repo.owner>sdaas</repo.owner>
+        <repo.name>karate-kafka</repo.name>
+
+
         <confluent.version>3.3.1</confluent.version>
     </properties>
 
@@ -27,17 +38,9 @@
     <repositories>
         <repository>
             <id>confluent</id>
-            <url>http://packages.confluent.io/maven/</url>
+            <url>https://packages.confluent.io/maven/</url>
         </repository>
     </repositories>
-
-    <distributionManagement>
-        <repository>
-            <id>internal.repo</id>
-            <name>Temporary Staging Repository</name>
-            <url>file://${project.build.directory}/mvn-repo</url>
-        </repository>
-    </distributionManagement>
 
     <dependencies>
         <!-- https://mvnrepository.com/artifact/org.apache.kafka/kafka-clients -->
@@ -59,7 +62,6 @@
             <groupId>com.intuit.karate</groupId>
             <artifactId>karate-junit5</artifactId>
             <version>${karate.version}</version>
-            <scope>test</scope>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core -->
@@ -80,7 +82,14 @@
         <dependency>
             <groupId>com.jayway.jsonpath</groupId>
             <artifactId>json-path</artifactId>
-            <version>2.4.0</version>
+            <version>${json-path.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -90,6 +99,33 @@
         </dependency>
 
     </dependencies>
+
+    <scm>
+        <connection>scm:git:https://github.com/${repo.owner}/${repo.name}.git</connection>
+        <url>https://github.com/${repo.owner}/${repo.name}</url>
+        <developerConnection>scm:git:https://github.com/${repo.owner}/${repo.name}.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+    <!-- Use this if publishing to github packages. Note that github packages requires an authenticated user
+    even to download the artifact, so please make sure you understand the consequences
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>${repo.owner}</name>
+            <url>https://maven.pkg.github.com/${repo.owner}/${repo.name}</url>
+        </repository>
+    </distributionManagement>
+    -->
+
+    <!-- The artifacts will be available in the mvn-repo branch -->
+    <distributionManagement>
+        <repository>
+            <id>internal.repo</id>
+            <name>Temporary Staging Repository</name>
+            <url>file://${project.build.directory}/mvn-repo</url>
+        </repository>
+    </distributionManagement>
 
     <build>
         <testResources>
@@ -105,15 +141,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.22.1</version>
-                <configuration>
-                    <excludes>
-                        <exclude>karate/**/*.java</exclude>
-                    </excludes>
-                    <includes>
-                        <include>com/**/*.java</include>
-                    </includes>
-                </configuration>
+                <version>${maven-surefire-plugin.version}</version>
             </plugin>
 
             <plugin>
@@ -127,30 +155,18 @@
             </plugin>
 
             <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.6</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <!-- attached to Maven test phase -->
-                    <execution>
-                        <id>report</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>${maven-release-plugin.version}</version>
+                <configuration>
+                    <tagNameFormat>v@{project.version}</tagNameFormat>
+                </configuration>
             </plugin>
 
             <!-- deploy artifacts to a temporary location inside my target directory -->
             <plugin>
                 <artifactId>maven-deploy-plugin</artifactId>
-                <version>2.8.1</version>
+                <version>${maven-deploy-plugin.version}</version>
                 <configuration>
                     <altDeploymentRepository>
                         internal.repo::default::file://${project.build.directory}/mvn-repo
@@ -158,8 +174,7 @@
                 </configuration>
             </plugin>
 
-            <!-- https://github.com/github/maven-plugins -->
-            <!-- used to commit files and update the branch -->
+            <!-- Note: This is NOT the Apache maven site plugin. This is from Github.com. Look at the groupId -->
             <plugin>
                 <groupId>com.github.github</groupId>
                 <artifactId>site-maven-plugin</artifactId>
@@ -174,8 +189,8 @@
                     <includes>
                         <include>**/*</include>
                     </includes>
-                    <repositoryName>karate-kafka</repositoryName>
-                    <repositoryOwner>sdaas</repositoryOwner>
+                    <repositoryOwner>${repo.owner}</repositoryOwner>
+                    <repositoryName>${repo.name}</repositoryName>
                     <server>github</server>
                 </configuration>
                 <executions>
@@ -216,7 +231,7 @@
                                         <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                             <mainClass>com.intuit.karate.Main</mainClass>
                                         </transformer>
-                                        <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>                                       
+                                        <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                                     </transformers>
                                 </configuration>
                             </execution>

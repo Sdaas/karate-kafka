@@ -1,12 +1,12 @@
 
-[![Build Status](https://api.travis-ci.com/Sdaas/karate-kafka.svg?branch=master)](https://travis-ci.com/Sdaas/karate-kafka)
+[![Java CI with Maven](https://github.com/Sdaas/karate-kafka/actions/workflows/maven.yml/badge.svg)](https://github.com/Sdaas/karate-kafka/actions/workflows/maven.yml)
 
 ## Introduction
 
 Work In Progress
 
-This project provides a library to test Kafka applications using KarateDSL. It provides a `KafkaProducer` and
-a `KafkaConsumer` that can be called from a Karate feature. An example :
+This project provides a library to test Kafka applications using [KarateDSL](https://github.com/karatelabs/karate). 
+It provides a `KafkaProducer` and `KafkaConsumer` that can be called from a Karate feature. An example :
 
 ```cucumber
 Feature: Kafka Producer and Consumer Demo
@@ -49,14 +49,15 @@ Feature: Kafka Producer and Consumer Demo
 ```
 ## Quick Demo
 
-Start up a single-node Kafka cluster locally with a topic called `test-topic`. Running
-`KarateTests` will invoke `src/test/java/karate/kafka/example.feature` which will attempt to
-write a few messages to this topic and read it back. Finally, shut down the Kafka cluster.
+Start up a single-node Kafka cluster locally. Running `karate.KarateTests` will invoke
+`src/test/java/karate/kafka/example.feature` which will attempt to
+write a few messages to `test-topic` and read it back. Finally, shut down
+the Kafka cluster.
 
 ```
-$ ./startup.sh   
-$ mvn test -Dtest=KafkaRunner  
-$ ./teardown.sh  
+$ docker-compose up -d 
+$ mvn test
+$ docker-compose down  
 ```
 
 ## Documentation
@@ -67,7 +68,7 @@ Add the following to your `pom.xml` :
 <dependency>
     <groupId>com.daasworld</groupId>
     <artifactId>karate-kafka</artifactId>
-    <version>0.1.2</version>
+    <version>0.3.2</version>
 </dependency>
 ```
 and
@@ -104,8 +105,8 @@ The following default properties are used to create the producer.
   "acks": "all"
 }
 ```
-The `karate.kafka.MyGenericSerializer` tries
-to automatically guess the key/value type and attempts to serialize it as `Integer`, `Long`, `String`, or `JSON` 
+The `karate.kafka.MyGenericSerializer` tries  to automatically guess the key/value type and attempts 
+to serialize it as `Integer`, `Long`, `String`, or `JSON` 
 based on the input. These default properties should work most of the time for testing, but you can always
 override them ...
 
@@ -208,21 +209,39 @@ By default, Karate runs all the features ( and the scenarios in each feature) in
 and writing from Kafka can lead to interleaving of results from different test cases. For this, it is best to run all the features
 and scenario in a single thread. To do this, the following changes are needed:
 
-* Add `@parallel=false` at the top of each feature file. This will ensure that the scenarios are run serially. BTW, Kafka does NOT 
+* Add `@parallel=false` at the top of each feature file. This will ensure that the scenarios are run serially. BTW, Karate does NOT 
 guarantee that the scenarios will be executed in the same order that they appear in the feature file
 
-* Set the number of threads to 1 in the `xxxRunner.java` file. e.g., `Runner.path(...).parallel(1);
+* Set the number of threads to 1 the `Runner`. E.g., `Runner.path(...).parallel(1);
+
+Currently `karate.KarateTests.java` has a single method to execute all the test cases
+```java
+@Test
+void testall() {
+    Results results = Runner.path("classpath:karate").parallel(1);
+    assertEquals(0, results.getFailCount(), results.getErrorMessages());
+}
+```
+
+This is ok for automated testing, but does not allow us to run one test at a time. To do that, you should replace that
+with the following which will allow us to run one feature at a time
+```java
+@Karate.Test
+Karate jsonExampleTest() throws InterruptedException {
+    return Karate.run("classpath:karate/json-example.feature");
+}
+```
 
 ### Cheat Sheet for configuring Serializers and Deserializers
 
 On the consumer side, you need to specify a deserializer for the key / value the data type is an integer
 
-| Data Type  | Serializer |
-| ---| ---|
-| Integer | org.apache.kafka.common.serialization.IntegerDeserializer  |
-| Longer | org.apache.kafka.common.serialization.LongDeserializer  |
-| String | auto-configured  |
-| JSON | auto-configured  |
+| Data Type | Serializer                                                |
+|-----------|-----------------------------------------------------------|
+| Integer   | org.apache.kafka.common.serialization.IntegerDeserializer |
+| Longer    | org.apache.kafka.common.serialization.LongDeserializer    |
+| String    | auto-configured                                           |
+| JSON      | auto-configured                                           |
 
 On the Producer Side, you should never have to configure a serializer either for the key or data
 
@@ -272,11 +291,6 @@ allows us to start each test from the same known state.
 This section briefly talks about how Karate interoperates with Java ....
 
 ### Numbers
-Karate internally uses Nashorn. Due to the way Nashnorn works, the number conversion
-between Karate DSL and Java can sometimes have issues. The exact conversion rules for 
-Nashorn vary by the JDK version and even the OS See [this](https://github.com/EclairJS/eclairjs-nashorn/wiki/Nashorn-Java-to-JavaScript-interoperability-issues)
-and [this](https://stackoverflow.com/questions/38140399/jdk-1-8-0-92-nashorn-js-engine-indexof-behaviour/38148917#38148917)
-articles for some samples.
 
 The largest number that can be safely converted to Java's integer or long is 
 `2147483647`. For example, referring to the `hello-java.feature` and the accompanying
@@ -296,7 +310,7 @@ The largest number that can be safely converted to Java's integer or long is
 ```
 
 To pass in big numbers, first convert them in `java.math.BigDecimal` as described in the
-[Karate Documentation](https://github.com/intuit/karate#large-numbers)   
+[Karate Documentation](https://github.com/karatelabs/karate#large-numbers)   
 
 ```cucumber
 * def param = new java.math.BigDecimal(123456789012345567890)
@@ -304,26 +318,63 @@ To pass in big numbers, first convert them in `java.math.BigDecimal` as describe
 * match out == param
 ```
 
-### Developer Instructions
+## Developer Instructions
 
-( work in progress ) for those developing this code
+This repo uses github actions to automatically build the library whenever code is pushed to master branch. 
+See [maven.yml](.github/workflows/maven.yml)
 
-To deploy to github
-* create an oauth2 token ( Personal Access Token)  
-    * Settings -> Developer Settings -> Personal Access Token
-    * give repo and read:user access
-* mvn deploy
+The primary challenge is where to publish the maven artifacts. Onboarding to 
+[mavenrepository.com](https://mvnrepository.com/repos/central) is a pain. One would have thought
+that [Github Package Registry](https://docs.github.com/en/packages/learn-github-packages/introduction-to-github-packages) but 
+you would be quite wrong. It turns out that authentication is needed even to download artifacts from the repository (read all 
+about it [here](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry)). So
+we have chosen to deploy all to the `mvn-repo` branch of this repo. See [this article](https://dev.to/iamthecarisma/hosting-a-maven-repository-on-github-site-maven-plugin-9ch)
+on how to host a maven repository inside a github repo. 
 
-* Run all tests (including coverage) from command line
-mvn test -Dtest=KarateTests
-* Coverage results are at 
-target/site/jacoco/karate.kafka/index.html
+### Prerequisites
+
+Create a github token with the following permissions. See github.com -> Settings -> Developer Settings -> Personal Access Token
+
+* Repo : full access
+* Workflow (used by Github actions for CI)
+* Write and read packages 
+* Delete packages
+* Read:user
+* User:email
+
+Make sure that you have a `~/.m2/settings.xml` file configured with a github token. For example
+
+```xml
+<settings>
+  <servers>
+    <server>
+      <id>github</id>
+      <username>sdaas</username>
+      <password>THE GITHUB ACCESS TOKEN </password>
+    </server>
+  </servers>
+</settings>
+```
+
+### Release process
+
+* `mvn test` 
+* `mvn release:prepare -DdryRun=true`
+* `mvn release:clean`
+* `mvn release:prepare`
+* `mvn release:perform`
+* Assuming that we are releasing `A.B.C`
+  * At this point the pom.xml should have been updated to the `next-version-SNAPSHOT` version
+  * There should be an entry for `A.B.C` version of the artifact in the `mvn-repo` branch
+  * There should a github tag called `vA.B.C`
+* We still need to create a Release (and release notes) manually from this tag.
 
 ### References
 
+* [Karate](https://github.com/karatelabs/karate)
 * [Kafkacat](https://github.com/edenhill/kafkacat)
-* [Running Kafka inside Docker](https://github.com/wurstmeister/kafka-docker)
 * [Markdown syntax](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)
 * [Java-Javascript Interop Issues in Nashorn](https://github.com/EclairJS/eclairjs-nashorn/wiki/Nashorn-Java-to-JavaScript-interoperability-issues)
-* [Hosting a maven repository on github](https://dev.to/iamthecarisma/hosting-a-maven-repository-on-github-site-maven-plugin-9ch)
+* [Maven Release Plugin](https://maven.apache.org/maven-release/maven-release-plugin/index.html)
+
 
