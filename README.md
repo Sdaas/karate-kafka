@@ -245,6 +245,47 @@ On the consumer side, you need to specify a deserializer for the key / value the
 
 On the Producer Side, you should never have to configure a serializer either for the key or data
 
+### Karate standalone
+
+If you want to use a standalone Kafka Jar please use this:
+
+```shell
+mvn -Pfatjar clean install
+```
+
+There is an example on how to use this in the [example karate standalone with kafka using schema_registry](examples/karate_standalone_with_kafka_schema_registry)
+
+## Managing the local Kafka broker
+
+The configuration for Kafka and Zookeeper is specified in `kafka-single-broker.yml`. See
+[Wurstmeister's Github wiki](https://github.com/wurstmeister/kafka-docker) on how to configure this.
+
+### Setting up the Kafka Cluster
+
+From the command line, run 
+
+```
+$ ./startup.sh
+Starting karate-kafka_zookeeper_1 ... done
+Starting karate-kafka_kafka_1     ... done
+CONTAINER ID        IMAGE                    NAMES
+ce9b01556d15        wurstmeister/zookeeper   karate-kafka_zookeeper_1
+33685067cb82        wurstmeister/kafka       karate-kafka_kafka_1
+*** sleeping for 10 seconds (give time for containers to spin up)
+*** the following topic were created ....
+test-topic
+```
+
+To smoke test this, we will setup a consumer that will echo whatever the producer writes. In
+one terminal start off a consumer by running `./consumer.sh`. In another terminal, start off
+a producer by running `./producer.sh`.  Type something into the producer. If all goes well, 
+you should see the consumer echo it back.
+
+From the command-line, run `./teardown.sh` to tear down the cluster. This stops zookeeper
+and all the kafka brokers, and also deletes the containers. This means all the data written
+to the kafka cluster will be lost. During testing, this is good because it
+allows us to start each test from the same known state.
+
 ## Interop between Karate and Java
 
 This section briefly talks about how Karate interoperates with Java ....
